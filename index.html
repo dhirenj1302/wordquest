@@ -1,171 +1,215 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>WordQuest — Adaptive Vocabulary Practice</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WordQuest — Adaptive Vocabulary</title>
 <style>
-:root{--bg:#f6f7fb;--card:#fff;--text:#202431;--muted:#6d7380;--accent:#5b5bd6;--ok:#17864b;--bad:#bb2d3b;--border:#e6e8ef;--shadow:0 10px 30px rgba(30,35,70,.08)}
-*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
-.app{max-width:680px;margin:0 auto;min-height:100vh;padding:18px 16px 40px}.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.brand{font-weight:850;font-size:21px;letter-spacing:-.5px}.pill{font-size:13px;background:#ececfd;color:#4141ae;padding:7px 10px;border-radius:999px;font-weight:750}
-.card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:22px;box-shadow:var(--shadow)} h1,h2,h3{margin:0 0 10px;letter-spacing:-.5px} p{line-height:1.5;color:var(--muted)}
-label{display:block;font-weight:750;margin:15px 0 7px}.input{width:100%;border:1px solid var(--border);padding:14px 15px;border-radius:14px;font-size:17px;background:#fff}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.btn{width:100%;border:0;border-radius:15px;padding:14px 16px;font-size:16px;font-weight:800;cursor:pointer;background:var(--accent);color:white;margin-top:16px}.btn.secondary{background:#f1f2f7;color:#303545}.btn.ghost{background:transparent;color:var(--accent);border:1px solid #d8d9fa}.btn:disabled{opacity:.45;cursor:not-allowed}
-.hidden{display:none!important}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}.stat{background:#f8f8fc;border:1px solid var(--border);border-radius:16px;padding:12px;text-align:center}.stat b{display:block;font-size:20px}.stat span{font-size:12px;color:var(--muted)}
-.progress-wrap{height:9px;border-radius:99px;background:#eceef4;overflow:hidden;margin:12px 0 20px}.progress{height:100%;width:0;background:var(--accent);transition:.25s}
-.question-type{text-transform:uppercase;letter-spacing:.12em;font-weight:850;font-size:11px;color:var(--accent);margin-bottom:10px}.question{font-size:24px;line-height:1.3;font-weight:850;letter-spacing:-.45px;margin-bottom:16px}.sentence{font-size:19px;line-height:1.5;background:#f8f8fc;border-radius:15px;padding:14px;margin-bottom:15px}
-.options{display:grid;gap:10px}.option{border:1px solid var(--border);background:#fff;border-radius:15px;padding:14px 15px;text-align:left;font-size:16px;cursor:pointer;font-weight:700}.option:hover{border-color:#b8baf5}.option.selected{border:2px solid var(--accent);background:#f1f1ff}.option.correct{border-color:#75c79a;background:#eefaf3;color:#116737}.option.wrong{border-color:#e09aa3;background:#fff1f3;color:#9b2230}.feedback{margin-top:14px;padding:14px;border-radius:15px;font-weight:700}.feedback.ok{background:#eefaf3;color:#116737}.feedback.bad{background:#fff1f3;color:#9b2230}.hintbox{margin-top:12px;background:#fff8e8;border:1px solid #f3d58c;padding:13px;border-radius:14px;color:#6e5311}
-.small{font-size:13px;color:var(--muted)}.nav{display:flex;gap:9px;margin-bottom:15px}.nav button{flex:1;border:1px solid var(--border);background:white;padding:10px;border-radius:13px;font-weight:750}.nav button.active{background:#ececfd;color:#4141ae;border-color:#d3d3fb}
-.mastery-row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}.tag{font-size:12px;padding:5px 8px;border-radius:999px;background:#f0f1f5;color:#555b67}.footer-note{font-size:12px;color:#8b909b;text-align:center;margin-top:18px}.big-score{font-size:52px;font-weight:900;letter-spacing:-2px}.center{text-align:center}.xp{font-weight:850;color:#7045c5}.audio-row{display:flex;gap:8px;align-items:center;margin:-6px 0 14px}.audio-btn{border:1px solid var(--border);background:#fff;border-radius:12px;padding:9px 11px;font-weight:750;cursor:pointer}.age-note{background:#f8f8fc;border-radius:14px;padding:11px 13px;margin-top:12px;font-size:13px;color:var(--muted)}
-@media (max-width:480px){.card{padding:18px}.question{font-size:22px}.row{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr);gap:7px}.stat{padding:10px 6px}.stat b{font-size:18px}}
+:root{--bg:#f6f7fb;--card:#fff;--text:#202431;--muted:#6d7380;--accent:#5b5bd6;--ok:#17864b;--bad:#b52a39;--border:#e5e7ef;--soft:#f2f3f8;--gold:#8a5a00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+.app{max-width:720px;margin:auto;min-height:100vh;padding:18px 16px 44px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.brand{font-size:22px;font-weight:900;letter-spacing:-.6px}.pill{background:#ececfd;color:#4141ae;padding:7px 10px;border-radius:99px;font-size:12px;font-weight:800}
+.card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:22px;box-shadow:0 10px 30px rgba(30,35,70,.07)}
+h1,h2,h3{margin:0 0 10px;letter-spacing:-.45px}p{color:var(--muted);line-height:1.5}.hidden{display:none!important}
+label{display:block;font-weight:800;margin:14px 0 7px}.input{width:100%;border:1px solid var(--border);border-radius:14px;padding:13px 14px;background:#fff;font-size:16px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{width:100%;border:0;border-radius:14px;padding:14px 16px;margin-top:14px;font-size:16px;font-weight:850;cursor:pointer;background:var(--accent);color:#fff}
+.btn.secondary{background:var(--soft);color:#343947}.btn.ghost{background:#fff;color:var(--accent);border:1px solid #d8d9fa}.btn:disabled{opacity:.45;cursor:not-allowed}
+.note{background:#f8f8fc;border-radius:14px;padding:11px 13px;margin-top:12px;font-size:13px;color:var(--muted)}
+.nav{display:flex;gap:8px;margin-bottom:14px}.nav button{flex:1;border:1px solid var(--border);background:white;border-radius:12px;padding:10px;font-weight:800}.nav button.active{background:#ececfd;color:#4141ae}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}.stat{background:#f8f8fc;border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center}.stat b{display:block;font-size:18px}.stat span{font-size:11px;color:var(--muted)}
+.progressWrap{height:8px;background:#e9ebf2;border-radius:99px;overflow:hidden;margin:12px 0 18px}.progress{height:100%;background:var(--accent);width:0;transition:.2s}
+.qtype{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);font-weight:900;margin-bottom:9px}.question{font-size:24px;font-weight:900;line-height:1.3;margin-bottom:14px}
+.wordHero{text-align:center;background:#f8f8fc;border-radius:17px;padding:18px;margin-bottom:14px}.wordHero b{font-size:30px}.gem{font-size:12px;color:var(--gold);font-weight:900;margin-top:5px}
+.options{display:grid;gap:10px}.option{border:1px solid var(--border);background:#fff;border-radius:14px;padding:14px;text-align:left;font-size:16px;font-weight:750;cursor:pointer}.option.selected{border:2px solid var(--accent);background:#f0f0ff}.option.correct{background:#eefaf3;border-color:#70c294;color:#106739}.option.wrong{background:#fff0f2;border-color:#dd929c;color:#982230}
+.feedback{padding:13px;border-radius:14px;margin-top:13px;font-weight:700}.feedback.ok{background:#eefaf3;color:#106739}.feedback.bad{background:#fff0f2;color:#982230}
+.hint{background:#fff8e7;border:1px solid #efd18b;border-radius:13px;padding:12px;margin-top:10px;color:#654d12}.small{font-size:12px;color:var(--muted)}
+.mastery{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}.tag{font-size:11px;padding:5px 8px;border-radius:99px;background:#eff0f5}.center{text-align:center}.big{font-size:50px;font-weight:950;letter-spacing:-2px}
+.loading{padding:35px 5px;text-align:center;color:var(--muted)}.error{background:#fff0f2;border:1px solid #e3a1a9;padding:13px;border-radius:14px;color:#8e2632}
+.audio{display:inline-block;border:1px solid var(--border);background:#fff;padding:8px 10px;border-radius:11px;font-weight:800;cursor:pointer;margin-bottom:12px}
+@media(max-width:520px){.row{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.card{padding:18px}.question{font-size:22px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="topbar"><div class="brand">WordQuest</div><div class="pill" id="levelPill">Adaptive vocabulary</div></div>
-  <section id="setup" class="card">
-    <h1>Build a stronger vocabulary</h1>
-    <p>Short, spoken, adaptive exercises that change with age and performance. Progress stays on this device.</p>
-    <label for="name">Student name</label><input class="input" id="name" placeholder="e.g. Aaryan" maxlength="30" />
-    <div class="row">
-      <div><label for="age">Age</label><input class="input" id="age" type="number" min="4" max="18" value="8" /></div>
-      <div><label for="sessionLength">Questions</label><select class="input" id="sessionLength"><option>10</option><option selected>12</option><option>15</option><option>20</option></select></div>
-    </div>
-    <div class="age-note">The age sets the starting point. The app then moves up or down according to demonstrated ability.</div>
-    <button class="btn" id="startBtn">Start practice</button>
-    <button class="btn secondary" id="resumeBtn">Resume saved learner</button>
-  </section>
+ <div class="top"><div class="brand">WordQuest</div><div id="pill" class="pill">D1 adaptive vocabulary</div></div>
 
-  <section id="main" class="hidden">
-    <div class="nav"><button id="practiceTab" class="active">Practice</button><button id="parentTab">Parent view</button><button id="resetTab">Reset</button></div>
-    <div id="practiceCard" class="card">
-      <div class="stats"><div class="stat"><b id="xpStat">0</b><span>XP</span></div><div class="stat"><b id="accuracyStat">—</b><span>Accuracy</span></div><div class="stat"><b id="abilityStat">—</b><span>Level</span></div></div>
-      <div class="progress-wrap"><div id="progressBar" class="progress"></div></div>
-      <div id="quizArea"></div>
-    </div>
-    <div id="parentCard" class="card hidden">
-      <h2 id="parentTitle">Progress</h2><p id="parentSummary"></p>
-      <div class="stats"><div class="stat"><b id="pQuestions">0</b><span>Total answered</span></div><div class="stat"><b id="pAccuracy">—</b><span>Lifetime accuracy</span></div><div class="stat"><b id="pMastered">0</b><span>Words strong</span></div></div>
-      <h3>Words to revisit</h3><div id="weakWords"></div><h3 style="margin-top:20px">Strongest words</h3><div id="strongWords"></div>
-    </div>
-  </section>
-  <div class="footer-note">Private prototype · speech uses your device's browser voice</div>
+ <section id="setup" class="card">
+  <h1>Build vocabulary that sticks</h1>
+  <p>WordQuest now draws its vocabulary from the 1,400-word D1 bank, adapts the Gem range to performance and records each attempt.</p>
+  <label>Student name</label><input id="name" class="input" maxlength="40" placeholder="e.g. Aaryan">
+  <div class="row">
+   <div><label>Age</label><input id="age" class="input" type="number" min="4" max="13" value="8"></div>
+   <div><label>School year</label><select id="year" class="input"><option>R</option><option>Y1</option><option>Y2</option><option>Y3</option><option selected>Y4</option><option>Y5</option><option>Y6</option></select></div>
+  </div>
+  <div class="row">
+   <div><label>Questions</label><select id="count" class="input"><option>8</option><option selected>10</option><option>12</option><option>15</option></select></div>
+   <div><label>Starting challenge</label><select id="challenge" class="input"><option value="40">Steady</option><option value="55" selected>Strong</option><option value="70">Stretch</option></select></div>
+  </div>
+  <div class="note">Age suggests a UK school year automatically; you can override it. The Gem target then changes with demonstrated performance.</div>
+  <button id="start" class="btn">Start practice</button>
+  <button id="resume" class="btn secondary">Resume saved learner</button>
+ </section>
+
+ <section id="main" class="hidden">
+  <div class="nav"><button id="practiceTab" class="active">Practice</button><button id="parentTab">Parent view</button><button id="resetTab">Reset</button></div>
+  <div id="practiceCard" class="card">
+   <div class="stats"><div class="stat"><b id="xp">0</b><span>Gems earned</span></div><div class="stat"><b id="acc">—</b><span>Accuracy</span></div><div class="stat"><b id="level">—</b><span>Gem target</span></div><div class="stat"><b id="yearStat">—</b><span>Current bank</span></div></div>
+   <div class="progressWrap"><div id="progress" class="progress"></div></div>
+   <div id="quiz"></div>
+  </div>
+  <div id="parentCard" class="card hidden">
+   <h2 id="parentTitle">Progress</h2><p id="parentText"></p>
+   <div class="stats"><div class="stat"><b id="pAnswered">0</b><span>Answered</span></div><div class="stat"><b id="pAcc">—</b><span>Accuracy</span></div><div class="stat"><b id="pStrong">0</b><span>Strong words</span></div><div class="stat"><b id="pTarget">—</b><span>Gem target</span></div></div>
+   <h3>Words to revisit</h3><div id="weak"></div>
+   <h3 style="margin-top:20px">Strongest words</h3><div id="strong"></div>
+  </div>
+ </section>
 </div>
+
 <script>
 const $=id=>document.getElementById(id);
-const WORDS=[
-// Foundation / early language (4–5)
-{w:'happy',d:'feeling pleased or cheerful',syn:['glad','cheerful'],ant:['sad','unhappy'],age:4,pos:'adjective',family:['happier','happiest']},
-{w:'tiny',d:'very small',syn:['little','small'],ant:['huge','large'],age:4,pos:'adjective',family:['tinier','tiniest']},
-{w:'quick',d:'moving or happening fast',syn:['fast','rapid'],ant:['slow'],age:4,pos:'adjective',family:['quickly','quicker']},
-{w:'kind',d:'friendly and helpful to others',syn:['caring','helpful'],ant:['unkind','cruel'],age:4,pos:'adjective',family:['kindness','kindly']},
-{w:'brave',d:'ready to face danger or difficulty',syn:['bold','courageous'],ant:['fearful','cowardly'],age:5,pos:'adjective',family:['bravely','bravery']},
-{w:'gentle',d:'kind, mild or soft',syn:['mild','soft'],ant:['rough','harsh'],age:5,pos:'adjective',family:['gently','gentleness']},
-{w:'calm',d:'peaceful and not worried or excited',syn:['peaceful','quiet'],ant:['agitated','frantic'],age:5,pos:'adjective',family:['calmly','calmness']},
-{w:'notice',d:'to see or become aware of something',syn:['observe','spot'],ant:['ignore','miss'],age:5,pos:'verb',family:['noticed','noticing']},
-// KS1-ish (6–7): common vocabulary + word-building
-{w:'enormous',d:'extremely large',syn:['huge','immense'],ant:['tiny','minute'],age:6,pos:'adjective',family:['enormously']},
-{w:'ancient',d:'very old',syn:['old','aged'],ant:['modern','new'],age:6,pos:'adjective',family:[]},
-{w:'fragile',d:'easily broken or damaged',syn:['delicate','breakable'],ant:['sturdy','strong'],age:6,pos:'adjective',family:['fragility']},
-{w:'fortunate',d:'having good luck',syn:['lucky','favoured'],ant:['unlucky','unfortunate'],age:6,pos:'adjective',family:['fortunately','fortune']},
-{w:'observe',d:'to watch carefully',syn:['watch','notice'],ant:['ignore'],age:6,pos:'verb',family:['observer','observation']},
-{w:'swift',d:'moving very quickly',syn:['rapid','fast'],ant:['slow','sluggish'],age:6,pos:'adjective',family:['swiftly']},
-{w:'reluctant',d:'unwilling or hesitant',syn:['unwilling','hesitant'],ant:['eager','willing'],age:7,pos:'adjective',family:['reluctantly','reluctance']},
-{w:'scarce',d:'not plentiful; hard to find',syn:['rare','limited'],ant:['abundant','plentiful'],age:7,pos:'adjective',family:['scarcity']},
-{w:'peculiar',d:'strange or unusual',syn:['odd','unusual'],ant:['ordinary','normal'],age:7,pos:'adjective',family:['peculiarly']},
-{w:'drowsy',d:'sleepy and tired',syn:['sleepy','tired'],ant:['alert','awake'],age:7,pos:'adjective',family:['drowsiness']},
-{w:'vivid',d:'bright, clear and powerful',syn:['striking','bright'],ant:['dull','faint'],age:7,pos:'adjective',family:['vividly']},
-{w:'conceal',d:'to hide something',syn:['hide','cover'],ant:['reveal','expose'],age:7,pos:'verb',family:['concealed','concealment']},
-// Lower KS2-ish (8–9): breadth/depth, roots, prefixes, suffixes
-{w:'meticulous',d:'very careful about small details',syn:['careful','thorough'],ant:['careless','sloppy'],age:8,pos:'adjective',family:['meticulously']},
-{w:'formidable',d:'very powerful, impressive or difficult to deal with',syn:['daunting','powerful'],ant:['weak','unimpressive'],age:8,pos:'adjective',family:[]},
-{w:'treacherous',d:'dangerous or untrustworthy',syn:['dangerous','deceitful'],ant:['safe','reliable'],age:8,pos:'adjective',family:['treachery']},
-{w:'abundant',d:'existing in large quantities',syn:['plentiful','ample'],ant:['scarce','limited'],age:8,pos:'adjective',family:['abundance']},
-{w:'resilient',d:'able to recover quickly from difficulty',syn:['tough','robust'],ant:['fragile','vulnerable'],age:8,pos:'adjective',family:['resilience']},
-{w:'elated',d:'extremely happy and excited',syn:['delighted','overjoyed'],ant:['dejected','miserable'],age:8,pos:'adjective',family:['elation']},
-{w:'cautious',d:'careful to avoid danger or mistakes',syn:['careful','wary'],ant:['reckless','rash'],age:8,pos:'adjective',family:['cautiously','caution']},
-{w:'obscure',d:'not well known or difficult to understand',syn:['unclear','unknown'],ant:['obvious','famous'],age:8,pos:'adjective',family:['obscurity']},
-{w:'benevolent',d:'kind and generous',syn:['kind','charitable'],ant:['cruel','malicious'],age:9,pos:'adjective',family:['benevolence']},
-{w:'tenacious',d:'very determined and unwilling to give up',syn:['persistent','determined'],ant:['wavering','yielding'],age:9,pos:'adjective',family:['tenacity']},
-{w:'ambiguous',d:'having more than one possible meaning; unclear',syn:['unclear','equivocal'],ant:['clear','definite'],age:9,pos:'adjective',family:['ambiguity']},
-{w:'conspicuous',d:'easy to notice',syn:['noticeable','prominent'],ant:['hidden','inconspicuous'],age:9,pos:'adjective',family:['conspicuously']},
-{w:'diligent',d:'showing steady, careful effort',syn:['hardworking','industrious'],ant:['lazy','negligent'],age:9,pos:'adjective',family:['diligently','diligence']},
-{w:'impartial',d:'fair and not favouring one side',syn:['fair','unbiased'],ant:['biased','partial'],age:9,pos:'adjective',family:['impartiality']},
-{w:'plausible',d:'seeming reasonable or likely to be true',syn:['believable','credible'],ant:['unlikely','implausible'],age:9,pos:'adjective',family:['plausibility']},
-{w:'meagre',d:'very small or insufficient in amount',syn:['scant','paltry'],ant:['ample','generous'],age:9,pos:'adjective',family:[]},
-// Upper KS2 / 11+ stretch (10–11)
-{w:'acquiesce',d:'to accept something reluctantly but without protest',syn:['consent','comply'],ant:['resist','protest'],age:10,pos:'verb',family:['acquiescence']},
-{w:'pragmatic',d:'dealing with problems in a practical way',syn:['practical','realistic'],ant:['impractical','idealistic'],age:10,pos:'adjective',family:['pragmatically','pragmatism']},
-{w:'ubiquitous',d:'present or found everywhere',syn:['widespread','universal'],ant:['rare','scarce'],age:10,pos:'adjective',family:['ubiquity']},
-{w:'candid',d:'truthful and straightforward',syn:['frank','honest'],ant:['evasive','deceptive'],age:10,pos:'adjective',family:['candidly','candour']},
-{w:'exacerbate',d:'to make a problem or situation worse',syn:['worsen','aggravate'],ant:['improve','alleviate'],age:10,pos:'verb',family:['exacerbation']},
-{w:'scrutinise',d:'to examine very carefully',syn:['inspect','examine'],ant:['glance','ignore'],age:10,pos:'verb',family:['scrutiny']},
-{w:'eloquent',d:'fluent, persuasive and graceful in expression',syn:['expressive','persuasive'],ant:['inarticulate','halting'],age:10,pos:'adjective',family:['eloquently','eloquence']},
-{w:'austere',d:'plain, strict or without comfort',syn:['severe','plain'],ant:['luxurious','ornate'],age:10,pos:'adjective',family:['austerity']},
-{w:'magnanimous',d:'generous and forgiving, especially towards a rival',syn:['generous','gracious'],ant:['petty','spiteful'],age:11,pos:'adjective',family:['magnanimity']},
-{w:'equivocal',d:'unclear or deliberately ambiguous',syn:['ambiguous','uncertain'],ant:['definite','unequivocal'],age:11,pos:'adjective',family:['equivocate']},
-{w:'fastidious',d:'very attentive to detail and difficult to please',syn:['meticulous','fussy'],ant:['careless','easy-going'],age:11,pos:'adjective',family:['fastidiously']},
-{w:'laconic',d:'using very few words',syn:['brief','terse'],ant:['verbose','wordy'],age:11,pos:'adjective',family:['laconically']},
-{w:'assiduous',d:'showing great care and persistent effort',syn:['diligent','persistent'],ant:['idle','careless'],age:11,pos:'adjective',family:['assiduously']},
-{w:'ephemeral',d:'lasting for a very short time',syn:['brief','fleeting'],ant:['lasting','permanent'],age:11,pos:'adjective',family:['ephemerality']},
-{w:'sagacious',d:'wise and showing good judgement',syn:['wise','shrewd'],ant:['foolish','unwise'],age:11,pos:'adjective',family:['sagacity']},
-{w:'perfunctory',d:'done with little care or interest',syn:['cursory','superficial'],ant:['thorough','careful'],age:11,pos:'adjective',family:['perfunctorily']},
-// older stretch
-{w:'perspicacious',d:'having a ready insight into things',syn:['perceptive','astute'],ant:['obtuse','unperceptive'],age:12,pos:'adjective',family:['perspicacity']},
-{w:'intransigent',d:'unwilling to change one’s views or agree',syn:['unyielding','stubborn'],ant:['flexible','accommodating'],age:12,pos:'adjective',family:['intransigence']},
-{w:'recalcitrant',d:'stubbornly resisting authority or control',syn:['defiant','uncooperative'],ant:['obedient','compliant'],age:12,pos:'adjective',family:['recalcitrance']},
-{w:'trenchant',d:'clear, forceful and effective',syn:['incisive','sharp'],ant:['vague','blunt'],age:12,pos:'adjective',family:['trenchantly']},
-{w:'capricious',d:'changing suddenly and unpredictably',syn:['fickle','unpredictable'],ant:['consistent','stable'],age:12,pos:'adjective',family:['capriciously']},
-{w:'ameliorate',d:'to make something bad or unsatisfactory better',syn:['improve','alleviate'],ant:['worsen','aggravate'],age:12,pos:'verb',family:['amelioration']}
-];
-const SENTENCES={
-happy:'Zara felt happy when her friend came to play.',tiny:'A tiny ant crawled across the leaf.',quick:'The quick rabbit darted into the hedge.',kind:'It was kind of Sam to help the new pupil.',brave:'The brave firefighter entered the smoky room.',gentle:'Use a gentle touch when holding the butterfly.',calm:'Mina stayed calm even when the alarm sounded.',notice:'Did you notice the rainbow above the rooftops?',
-enormous:'An enormous whale surfaced beside the boat.',ancient:'They discovered an ancient coin beneath the soil.',fragile:'The fragile glass ornament needed careful handling.',fortunate:'We were fortunate that the rain stopped before the picnic.',observe:'The class went outside to observe how the shadows changed.',swift:'The swift fox disappeared into the woods.',reluctant:'Maya was reluctant to enter the dark cave.',scarce:'Fresh water became scarce during the long drought.',peculiar:'A peculiar sound came from inside the empty cupboard.',drowsy:'After the long journey, Leo felt drowsy.',vivid:'She gave a vivid description of the storm.',conceal:'The spy tried to conceal the map inside his coat.',
-meticulous:'The scientist kept meticulous notes of every result.',formidable:'The team faced a formidable opponent in the final.',treacherous:'Ice made the mountain path treacherous.',abundant:'Wildflowers were abundant after weeks of rain.',resilient:'The resilient plant recovered after the storm.',elated:'He was elated when he heard the good news.',cautious:'She was cautious when crossing the slippery bridge.',obscure:'The clue was obscure and difficult to understand.',benevolent:'The benevolent neighbour quietly helped families in need.',tenacious:'The tenacious detective refused to abandon the case.',ambiguous:'The instructions were ambiguous, so two people understood them differently.',conspicuous:'His bright yellow coat made him conspicuous in the crowd.',diligent:'Her diligent revision helped her improve steadily.',impartial:'A referee must remain impartial during a match.',plausible:'His explanation sounded plausible, though it was not yet proven.',meagre:'They survived on a meagre supply of food.',
-acquiesce:'After arguing for an hour, he finally chose to acquiesce.',pragmatic:'She took a pragmatic approach and fixed the most urgent problem first.',ubiquitous:'Smartphones have become ubiquitous in modern life.',candid:'He gave a candid account of what had gone wrong.',exacerbate:'Ignoring the leak would only exacerbate the damage.',scrutinise:'The inspector began to scrutinise every detail.',eloquent:'Her eloquent speech persuaded many listeners.',austere:'The room was austere, with bare walls and simple furniture.',magnanimous:'She was magnanimous in victory and praised her opponent.',equivocal:'His equivocal answer left everyone unsure of his position.',fastidious:'The fastidious editor noticed even the smallest error.',laconic:'His laconic reply contained only two words.',assiduous:'Her assiduous practice transformed her performance.',ephemeral:'The rainbow was beautiful but ephemeral.',sagacious:'The sagacious leader considered the long-term consequences.',perfunctory:'He gave the document a perfunctory glance.',perspicacious:'The perspicacious judge quickly noticed the flaw in the argument.',intransigent:'The intransigent negotiator refused every compromise.',recalcitrant:'The recalcitrant pupil refused to follow repeated instructions.',trenchant:'Her trenchant criticism exposed the weakness in the plan.',capricious:'The capricious weather changed from sunshine to hail within minutes.',ameliorate:'The new measures were designed to ameliorate the problem.'};
-let state=null,session=null;
-function save(){localStorage.setItem('wordquest_state_v2',JSON.stringify(state))}
-function load(){try{return JSON.parse(localStorage.getItem('wordquest_state_v2'))}catch(e){return null}}
-function ageAbility(age){if(age<=4)return 1.4;if(age===5)return 2;if(age===6)return 2.8;if(age===7)return 3.6;if(age===8)return 4.5;if(age===9)return 5.4;if(age===10)return 6.4;if(age===11)return 7.3;if(age===12)return 8.1;return Math.min(9.5,8.1+(age-12)*.22)}
-function levelLabel(a){return Math.max(1,Math.min(10,Math.round(a*10)/10)).toFixed(1)}
-function wordLevel(w){return Math.max(1,Math.min(10,1+(w.age-4)*.78))}
-function init(name,age){state={name:name||'Learner',age:+age||8,ability:ageAbility(+age||8),xp:0,total:0,correct:0,words:{},history:[],typeStats:{}};save()}
-function showMain(){ $('setup').classList.add('hidden');$('main').classList.remove('hidden');startSession() }
-function startSession(){session={n:+$('sessionLength').value||12,i:0,correct:0,current:null,hints:0,answered:false,selected:null};$('parentCard').classList.add('hidden');$('practiceCard').classList.remove('hidden');$('practiceTab').classList.add('active');$('parentTab').classList.remove('active');nextQuestion()}
-function shuffle(a){return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1])}
-function dueScore(w){let r=state.words[w.w];if(!r)return 1.4;if(r.wrong>r.right)return 2;let days=(Date.now()-(r.last||0))/86400000;return Math.min(1.6,.25+days/8)}
-function pickWord(){let target=state.ability;let pool=WORDS.filter(w=>Math.abs(wordLevel(w)-target)<=1.35);if(pool.length<8)pool=WORDS.filter(w=>Math.abs(wordLevel(w)-target)<=2);let weighted=[];pool.forEach(w=>{let n=Math.max(1,Math.round(dueScore(w)*3));for(let i=0;i<n;i++)weighted.push(w)});return weighted[Math.floor(Math.random()*weighted.length)]||WORDS[0]}
-function allowedTypes(age){if(age<=5)return ['meaning','synonym','antonym','pictureless_context'];if(age<=7)return ['meaning','synonym','antonym','context','sentence','word_family','odd_one_out'];if(age<=9)return ['meaning','synonym','antonym','context','sentence','word_family','odd_one_out','relationship','shade'];return ['meaning','synonym','antonym','context','sentence','word_family','odd_one_out','relationship','shade','precision','morphology']}
-function nearbyWords(word){let l=wordLevel(word);return shuffle(WORDS.filter(x=>x.w!==word.w&&Math.abs(wordLevel(x)-l)<1.6))}
-function choiceWords(word,n=3){return nearbyWords(word).slice(0,n).map(x=>x.w)}
-function choiceDefs(word,n=3){return nearbyWords(word).slice(0,n).map(x=>x.d)}
-function makeQuestion(word){let candidates=allowedTypes(state.age);let recent=(state.history||[]).slice(-4).map(h=>h.type);let pool=candidates.filter(t=>!recent.includes(t));if(!pool.length)pool=candidates;let type=pool[Math.floor(Math.random()*pool.length)];let q='',correct='',opts=[],sentence='';
- if(type==='meaning'){q=`What does “${word.w}” mean?`;correct=word.d;opts=[correct,...choiceDefs(word)];}
- if(type==='synonym'){q=`Which word is closest in meaning to “${word.w}”?`;correct=word.syn[0];opts=[correct,word.ant[0],...choiceWords(word,2)];}
- if(type==='antonym'){q=`Which word means the opposite of “${word.w}”?`;correct=word.ant[0];opts=[correct,word.syn[0],...choiceWords(word,2)];}
- if(type==='context'||type==='pictureless_context'){sentence=SENTENCES[word.w];q=state.age<=5?'Which answer best explains the bold word in the sentence?':`What does “${word.w}” most nearly mean in this sentence?`;correct=word.d;opts=[correct,...choiceDefs(word)];}
- if(type==='sentence'){q=`Which sentence uses “${word.w}” correctly?`;correct=SENTENCES[word.w];let other=nearbyWords(word).slice(0,3).map(x=>SENTENCES[x.w]);opts=[correct,...other];}
- if(type==='word_family'){let fam=word.family&&word.family[0];if(!fam){type='meaning';q=`What does “${word.w}” mean?`;correct=word.d;opts=[correct,...choiceDefs(word)];}else{q=`Which word belongs to the same word family as “${word.w}”?`;correct=fam;opts=[correct,...choiceWords(word,3)];}}
- if(type==='odd_one_out'){let s1=word.syn[0],s2=word.syn[1]||word.syn[0];q='Which word is the odd one out?';correct=word.ant[0];opts=[s1,s2,word.w,correct];}
- if(type==='relationship'){let other=nearbyWords(word)[0]||WORDS[0];q=`Which word completes the synonym relationship? “${word.w}” is to “${word.syn[0]}” as “${other.w}” is to ____.`;correct=other.syn[0];opts=[correct,other.ant[0],word.ant[0],...choiceWords(other,1)];}
- if(type==='shade'){let strong=word.syn[1]||word.syn[0];q=`Which word is the best alternative to “${word.w}” if you want a similar meaning?`;correct=strong;opts=[correct,word.ant[0],...choiceWords(word,2)];}
- if(type==='precision'){sentence=SENTENCES[word.w];q=`Which word best preserves the precise meaning of “${word.w}” in this sentence?`;correct=word.syn[0];opts=[correct,word.ant[0],...choiceWords(word,2)];}
- if(type==='morphology'){let fam=word.family&&word.family[0];if(!fam){type='meaning';q=`What does “${word.w}” mean?`;correct=word.d;opts=[correct,...choiceDefs(word)];}else{q=`Which related word is formed from “${word.w}”?`;correct=fam;opts=[correct,...choiceWords(word,3)];}}
- opts=shuffle([...new Set(opts)].slice(0,4));while(opts.length<4){let c=choiceWords(word,4).find(x=>!opts.includes(x));if(!c)break;opts.push(c)}
- return {word,type,q,correct,opts:shuffle(opts),sentence};}
-function speak(text){if(!('speechSynthesis' in window)||!text)return;window.speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(text.replace(/[“”]/g,'"'));u.lang='en-GB';u.rate=state&&state.age<=6?.86:.94;window.speechSynthesis.speak(u)}
-function spokenQuestion(x){let txt='';if(x.sentence)txt+=x.sentence+'. ';txt+=x.q;return txt}
-function nextQuestion(){if(session.i>=session.n){finishSession();return}session.current=makeQuestion(pickWord());session.answered=false;session.hints=0;session.selected=null;renderQuestion();setTimeout(()=>speak(spokenQuestion(session.current)),250)}
-function renderQuestion(){let x=session.current;$('progressBar').style.width=`${(session.i/session.n)*100}%`;let label=x.type.replaceAll('_',' ');$('quizArea').innerHTML=`<div class="question-type">${label} · question ${session.i+1} of ${session.n}</div><div class="question">${x.q}</div>${x.sentence?`<div class="sentence">${x.sentence.replace(x.word.w,`<b>${x.word.w}</b>`)}</div>`:''}<div class="audio-row"><button class="audio-btn" id="repeatBtn">🔊 Read again</button></div><div class="options">${x.opts.map((o,i)=>`<button class="option" data-i="${i}">${o}</button>`).join('')}</div><div id="feedback"></div><button class="btn ghost" id="hintBtn">Give me a hint</button><button class="btn" id="submitBtn" disabled>Submit answer</button>`;document.querySelectorAll('.option').forEach(b=>b.onclick=()=>selectAnswer(+b.dataset.i));$('hintBtn').onclick=hint;$('repeatBtn').onclick=()=>speak(spokenQuestion(x));$('submitBtn').onclick=submitAnswer;updateStats()}
-function selectAnswer(i){if(session.answered)return;session.selected=i;document.querySelectorAll('.option').forEach((b,idx)=>b.classList.toggle('selected',idx===i));$('submitBtn').disabled=false;speak(session.current.opts[i])}
-function submitAnswer(){if(session.answered||session.selected===null)return;session.answered=true;let x=session.current,i=session.selected,chosen=x.opts[i],ok=chosen===x.correct;let rec=state.words[x.word.w]||{right:0,wrong:0,hints:0,last:0};if(ok){rec.right++;state.correct++;session.correct++;state.xp+=Math.max(3,10-session.hints*2);state.ability=Math.min(10,state.ability+(session.hints?0.03:0.14));}else{rec.wrong++;state.ability=Math.max(1,state.ability-0.12)}rec.hints+=session.hints;rec.last=Date.now();state.words[x.word.w]=rec;state.total++;state.typeStats[x.type]=state.typeStats[x.type]||{right:0,total:0};state.typeStats[x.type].total++;if(ok)state.typeStats[x.type].right++;state.history.push({t:Date.now(),w:x.word.w,type:x.type,ok,hints:session.hints,ability:state.ability});save();document.querySelectorAll('.option').forEach((b,idx)=>{b.disabled=true;b.classList.remove('selected');if(x.opts[idx]===x.correct)b.classList.add('correct');else if(idx===i)b.classList.add('wrong')});$('hintBtn').classList.add('hidden');$('submitBtn').classList.add('hidden');$('feedback').innerHTML=`<div class="feedback ${ok?'ok':'bad'}">${ok?'Correct!':'Not quite.'} <span class="xp">${ok?`+${Math.max(3,10-session.hints*2)} XP`:''}</span><br><span class="small"><b>${x.word.w}</b>: ${x.word.d}</span></div><button class="btn" id="nextBtn">${session.i+1===session.n?'See results':'Next question'}</button>`;speak(ok?`Correct. ${x.word.w} means ${x.word.d}`:`Not quite. The correct answer is ${x.correct}. ${x.word.w} means ${x.word.d}`);$('nextBtn').onclick=()=>{session.i++;nextQuestion()};updateStats()}
-function hint(){if(session.answered)return;session.hints++;let w=session.current.word;let msg=session.hints===1?`Think about this idea: ${w.d.split(/[;,]/)[0]}.`:session.hints===2?`A close synonym is “${w.syn[0]}”.`:`The correct answer is connected to “${session.current.correct}”.`;let existing=$('hintbox');if(existing)existing.remove();let d=document.createElement('div');d.id='hintbox';d.className='hintbox';d.textContent=`Hint ${Math.min(session.hints,3)}: ${msg}`;$('feedback').appendChild(d);speak(msg);if(session.hints>=3)$('hintBtn').disabled=true}
-function finishSession(){$('progressBar').style.width='100%';let pct=Math.round(session.correct/session.n*100);$('quizArea').innerHTML=`<div class="center"><div class="question-type">Session complete</div><div class="big-score">${pct}%</div><h2>${pct>=85?'Excellent work':pct>=70?'Good progress':'Useful practice'}</h2><p>You answered ${session.correct} of ${session.n} correctly. Current adaptive level: <b>${levelLabel(state.ability)}</b>.</p><button class="btn" id="againBtn">Do another session</button><button class="btn secondary" id="parentNowBtn">View progress</button></div>`;$('againBtn').onclick=startSession;$('parentNowBtn').onclick=showParent;updateStats()}
-function updateStats(){if(!state)return;$('xpStat').textContent=state.xp;$('accuracyStat').textContent=state.total?Math.round(state.correct/state.total*100)+'%':'—';$('abilityStat').textContent=levelLabel(state.ability);$('levelPill').textContent=`${state.name} · Level ${levelLabel(state.ability)}`}
-function showParent(){$('practiceCard').classList.add('hidden');$('parentCard').classList.remove('hidden');$('practiceTab').classList.remove('active');$('parentTab').classList.add('active');$('parentTitle').textContent=`${state.name}'s progress`;let acc=state.total?Math.round(state.correct/state.total*100):0;$('parentSummary').textContent=`Age ${state.age}. Starting difficulty was age-calibrated; current level ${levelLabel(state.ability)} reflects performance. Question types broaden with age, including word families, context, shades of meaning and morphology.`;$('pQuestions').textContent=state.total;$('pAccuracy').textContent=state.total?acc+'%':'—';let entries=Object.entries(state.words).map(([w,r])=>({w,...r,score:r.right-r.wrong*1.5}));$('pMastered').textContent=entries.filter(x=>x.right>=3&&x.score>=2).length;let weak=[...entries].sort((a,b)=>a.score-b.score).slice(0,8),strong=[...entries].sort((a,b)=>b.score-a.score).slice(0,8);$('weakWords').innerHTML=weak.length?weak.map(renderMastery).join(''):'<p class="small">No weak words yet — complete a session first.</p>';$('strongWords').innerHTML=strong.length?strong.map(renderMastery).join(''):'<p class="small">No history yet.</p>'}
-function renderMastery(x){return `<div class="mastery-row"><div><b>${x.w}</b><div class="small">${x.right} correct · ${x.wrong} wrong · ${x.hints||0} hints</div></div><div class="tag">${x.score>=2?'Strong':x.score<0?'Review':'Learning'}</div></div>`}
-$('startBtn').onclick=()=>{init($('name').value.trim(),$('age').value);showMain()};$('resumeBtn').onclick=()=>{state=load();if(!state){alert('No saved learner found on this device.');return}$('name').value=state.name;$('age').value=state.age;showMain()};$('practiceTab').onclick=()=>{$('parentCard').classList.add('hidden');$('practiceCard').classList.remove('hidden');$('practiceTab').classList.add('active');$('parentTab').classList.remove('active')};$('parentTab').onclick=showParent;$('resetTab').onclick=()=>{if(confirm('Delete all saved WordQuest progress on this device?')){localStorage.removeItem('wordquest_state_v2');location.reload()}};
-const saved=load();if(saved)$('resumeBtn').textContent=`Resume ${saved.name}`;
+const KEY='wordquest_v31';
+let state=null, session=null;
+const YEAR_INDEX={R:0,Y1:1,Y2:2,Y3:3,Y4:4,Y5:5,Y6:6};
+const YEARS=['R','Y1','Y2','Y3','Y4','Y5','Y6'];
+
+$('age').addEventListener('change',()=>{$('year').value=ageToYear(Number($('age').value))});
+function ageToYear(age){if(age<=4)return'R';if(age===5)return'Y1';if(age===6)return'Y2';if(age===7)return'Y3';if(age===8)return'Y4';if(age===9)return'Y5';return'Y6'}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{return null}}
+function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function speak(t){if(!('speechSynthesis'in window)||!t)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/[“”]/g,'"'));u.lang='en-GB';u.rate=(state?.age||8)<=6?.84:.93;speechSynthesis.speak(u)}
+async function api(url,opt){const r=await fetch(url,opt);let j=null;try{j=await r.json()}catch{}if(!r.ok)throw new Error(j?.detail||j?.error||`HTTP ${r.status}`);return j}
+
+$('start').onclick=async()=>{
+ const name=$('name').value.trim(),age=Number($('age').value),year=$('year').value;
+ if(!name)return alert('Please enter a student name.');
+ $('start').disabled=true;$('start').textContent='Creating learner…';
+ try{
+   const student=await api('/api/students',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name,year_group:year,birth_year:new Date().getFullYear()-age})});
+   state={studentId:student.id,name,age,year,targetGem:Number($('challenge').value),xp:0,total:0,correct:0,sessionCount:Number($('count').value)};
+   save();showMain();await startSession();
+ }catch(e){alert('Could not create learner: '+e.message)}
+ finally{$('start').disabled=false;$('start').textContent='Start practice'}
+};
+$('resume').onclick=async()=>{state=load();if(!state)return alert('No saved WordQuest learner on this device.');$('name').value=state.name;$('age').value=state.age;$('year').value=state.year;showMain();await startSession()};
+const existing=load();if(existing)$('resume').textContent=`Resume ${existing.name}`;
+
+function showMain(){$('setup').classList.add('hidden');$('main').classList.remove('hidden');updateStats()}
+async function startSession(){
+ session={i:0,n:state.sessionCount||10,correct:0,words:[],question:null,selected:null,hints:0,start:0,seen:new Set()};
+ $('quiz').innerHTML='<div class="loading">Loading an adaptive set from the vocabulary bank…</div>';
+ try{
+   const data=await api(`/api/session?year=${encodeURIComponent(state.year)}&student_id=${state.studentId}&targetGem=${Math.round(state.targetGem)}&count=${session.n}&radius=24`);
+   session.words=data.results||[];
+   if(session.words.length<4)throw new Error('Not enough vocabulary returned for a session.');
+   nextQuestion();
+ }catch(e){
+   $('quiz').innerHTML=`<div class="error"><b>Could not load the vocabulary session.</b><br>${esc(e.message)}<br><br>Check that migration 0009 has been run and the DB binding is active.</div><button class="btn" onclick="startSession()">Try again</button>`;
+ }
+}
+function nextQuestion(){
+ if(session.i>=session.n||!session.words.length)return finish();
+ const w=pickWord();session.question=makeQuestion(w);session.selected=null;session.hints=0;session.start=Date.now();renderQuestion();setTimeout(()=>speak(spoken(session.question)),200);
+}
+function pickWord(){
+ const available=session.words.filter(w=>!session.seen.has(w.id));
+ const pool=available.length?available:session.words;
+ const w=pool[Math.floor(Math.random()*pool.length)];session.seen.add(w.id);return w;
+}
+function makeQuestion(w){
+ const types=['meaning','word_from_definition'];
+ if((w.synonyms||[]).length)types.push('synonym');
+ if((w.antonyms||[]).length)types.push('antonym');
+ if((w.examples||[]).length && !(w.examples[0]||'').startsWith('Try using'))types.push('context');
+ const type=types[Math.floor(Math.random()*types.length)];
+ const others=shuffle(session.words.filter(x=>x.id!==w.id&&x.definition));
+ let q,correct,opts,displayWord=true,example=null;
+ if(type==='meaning'){
+   q=`What does “${w.lemma}” mean?`;correct=w.definition;opts=[correct,...others.slice(0,3).map(x=>x.definition)];
+ }else if(type==='word_from_definition'){
+   q=`Which word best matches this meaning: “${w.definition}”?`;correct=w.lemma;opts=[correct,...others.slice(0,3).map(x=>x.lemma)];displayWord=false;
+ }else if(type==='synonym'){
+   correct=w.synonyms[0];q=`Which word is closest in meaning to “${w.lemma}”?`;opts=[correct,...distractorWords(w,correct,3)];
+ }else if(type==='antonym'){
+   correct=w.antonyms[0];q=`Which word is most nearly the opposite of “${w.lemma}”?`;opts=[correct,...distractorWords(w,correct,3)];
+ }else{
+   example=w.examples[0];q=`In this sentence, what does “${w.lemma}” most nearly mean?`;correct=w.definition;opts=[correct,...others.slice(0,3).map(x=>x.definition)];
+ }
+ opts=unique(opts).slice(0,4);
+ while(opts.length<4){const x=others.find(z=>!opts.includes(z.lemma)&&!opts.includes(z.definition));if(!x)break;opts.push(type==='meaning'||type==='context'?x.definition:x.lemma)}
+ return {w,type,q,correct,opts:shuffle(opts),displayWord,example};
+}
+function distractorWords(w,correct,n){
+ const pool=[...(w.synonyms||[]).slice(1),...(w.antonyms||[]),...session.words.map(x=>x.lemma)].filter(x=>x&&x!==correct&&x!==w.lemma);
+ return unique(shuffle(pool)).slice(0,n);
+}
+function unique(a){return [...new Set(a.map(x=>String(x).trim()).filter(Boolean))]}
+function spoken(x){return `${x.example?x.example+'. ':''}${x.q}`}
+function renderQuestion(){
+ const x=session.question,w=x.w;$('progress').style.width=`${(session.i/session.n)*100}%`;
+ $('quiz').innerHTML=`
+  <div class="qtype">${x.type.replaceAll('_',' ')} · ${session.i+1} of ${session.n}</div>
+  ${x.displayWord?`<div class="wordHero"><b>${esc(w.lemma)}</b><div class="gem">💎 ${w.gem_score} Gem challenge · ${w.year_group}</div></div>`:''}
+  ${x.example?`<div class="note" style="font-size:16px;color:#303545">${highlight(x.example,w.lemma)}</div>`:''}
+  <div class="question">${esc(x.q)}</div>
+  <button id="audio" class="audio">🔊 Read again</button>
+  <div class="options">${x.opts.map((o,i)=>`<button class="option" data-i="${i}">${esc(o)}</button>`).join('')}</div>
+  <div id="feedback"></div>
+  <button id="hint" class="btn ghost">Give me a hint</button>
+  <button id="submit" class="btn" disabled>Submit answer</button>`;
+ document.querySelectorAll('.option').forEach(b=>b.onclick=()=>select(+b.dataset.i));
+ $('audio').onclick=()=>speak(spoken(x));$('hint').onclick=hint;$('submit').onclick=submit;
+ updateStats();
+}
+function select(i){session.selected=i;document.querySelectorAll('.option').forEach((b,j)=>b.classList.toggle('selected',i===j));$('submit').disabled=false;speak(session.question.opts[i])}
+function hint(){
+ const x=session.question,w=x.w;session.hints++;
+ let msg=session.hints===1?`Think about the definition: ${w.definition}.`:
+         session.hints===2&&w.synonyms?.length?`A related word is “${w.synonyms[0]}”.`:
+         `The answer starts with “${String(x.correct).charAt(0)}”.`;
+ const d=document.createElement('div');d.className='hint';d.textContent=`Hint ${session.hints}: ${msg}`;$('feedback').replaceChildren(d);speak(msg);if(session.hints>=3)$('hint').disabled=true;
+}
+async function submit(){
+ const x=session.question;if(session.selected===null)return;
+ const chosen=x.opts[session.selected],ok=chosen===x.correct,response=Date.now()-session.start;
+ document.querySelectorAll('.option').forEach((b,i)=>{b.disabled=true;b.classList.remove('selected');if(x.opts[i]===x.correct)b.classList.add('correct');else if(i===session.selected)b.classList.add('wrong')});
+ $('hint').classList.add('hidden');$('submit').classList.add('hidden');
+ if(ok){session.correct++;state.correct++;state.xp+=Math.max(2,Math.round(x.w.gem_score/10)-session.hints);state.targetGem=clamp(state.targetGem+(session.hints?0.5:2.0),5,95)}
+ else state.targetGem=clamp(state.targetGem-2.2,5,95);
+ state.total++;save();
+ $('feedback').innerHTML=`<div class="feedback ${ok?'ok':'bad'}">${ok?'Correct.':'Not quite.'}<br><span class="small"><b>${esc(x.w.lemma)}</b>: ${esc(x.w.definition)}</span></div><button id="next" class="btn">${session.i+1>=session.n?'See results':'Next question'}</button>`;
+ speak(ok?`Correct. ${x.w.lemma} means ${x.w.definition}`:`Not quite. ${x.w.lemma} means ${x.w.definition}`);
+ api('/api/attempts',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({student_id:state.studentId,word_id:x.w.id,year_group:x.w.year_group,question_type:x.type,correct:ok,hints_used:session.hints,response_ms:response,gem_score:x.w.gem_score})}).catch(console.warn);
+ $('next').onclick=()=>{session.i++;nextQuestion()};updateStats();
+}
+function finish(){
+ $('progress').style.width='100%';const pct=Math.round(100*session.correct/session.n);
+ maybePromoteYear(pct);
+ $('quiz').innerHTML=`<div class="center"><div class="qtype">Session complete</div><div class="big">${pct}%</div><h2>${pct>=90?'Excellent mastery':pct>=75?'Strong progress':'Useful practice'}</h2><p>${session.correct}/${session.n} correct. Next Gem target: <b>${Math.round(state.targetGem)}</b>${state.yearPromotion?` · bank advanced to <b>${state.year}</b>`:''}.</p><button id="again" class="btn">Another session</button><button id="viewProgress" class="btn secondary">Parent view</button></div>`;
+ state.yearPromotion=false;save();$('again').onclick=startSession;$('viewProgress').onclick=showParent;updateStats();
+}
+function maybePromoteYear(pct){
+ if(pct>=90&&state.targetGem>=88&&state.year!=='Y6'){state.year=YEARS[YEAR_INDEX[state.year]+1];state.targetGem=38;state.yearPromotion=true;api('/api/students',{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({id:state.studentId,year_group:state.year})}).catch(console.warn)}
+}
+function updateStats(){if(!state)return;$('xp').textContent=state.xp;$('acc').textContent=state.total?Math.round(100*state.correct/state.total)+'%':'—';$('level').textContent=Math.round(state.targetGem);$('yearStat').textContent=state.year;$('pill').textContent=`${state.name} · ${state.year}`}
+async function showParent(){
+ $('practiceCard').classList.add('hidden');$('parentCard').classList.remove('hidden');$('practiceTab').classList.remove('active');$('parentTab').classList.add('active');
+ $('parentTitle').textContent=`${state.name}'s progress`;$('parentText').textContent=`Current bank ${state.year}; adaptive Gem target ${Math.round(state.targetGem)}. Database mastery is based on repeated attempts, errors and hint use.`;
+ try{
+  const d=await api(`/api/progress?student_id=${state.studentId}`);
+  $('pAnswered').textContent=d.totals?.answered||0;$('pAcc').textContent=d.totals?.answered?`${Math.round(d.totals.accuracy)}%`:'—';$('pStrong').textContent=d.strong?.length||0;$('pTarget').textContent=Math.round(state.targetGem);
+  $('weak').innerHTML=(d.weak||[]).length?d.weak.map(masterRow).join(''):'<p class="small">No weak words yet.</p>';
+  $('strong').innerHTML=(d.strong||[]).length?d.strong.map(masterRow).join(''):'<p class="small">No strong words yet.</p>';
+ }catch(e){$('weak').innerHTML=`<div class="error">${esc(e.message)}</div>`}
+}
+function masterRow(x){return `<div class="mastery"><div><b>${esc(x.lemma)}</b><div class="small">${x.exposures} exposures · ${x.incorrect} errors · ${x.hints_used} hints</div></div><div class="tag">${Math.round(100*x.mastery)}%</div></div>`}
+$('practiceTab').onclick=()=>{$('parentCard').classList.add('hidden');$('practiceCard').classList.remove('hidden');$('practiceTab').classList.add('active');$('parentTab').classList.remove('active')};
+$('parentTab').onclick=showParent;
+$('resetTab').onclick=()=>{if(confirm('Remove this saved learner from this device? Database history will remain.')){localStorage.removeItem(KEY);location.reload()}};
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function highlight(s,w){const safe=esc(s);const re=new RegExp(`\\b${String(w).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\b`,'ig');return safe.replace(re,m=>`<b>${m}</b>`)}
 </script>
 </body>
 </html>
