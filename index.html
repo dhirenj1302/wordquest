@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>WordQuest — Adaptive Vocabulary</title>
+<title>WordQuest — Adaptive Vocabulary v3.2</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--text:#202431;--muted:#6d7380;--accent:#5b5bd6;--ok:#17864b;--bad:#b52a39;--border:#e5e7ef;--soft:#f2f3f8;--gold:#8a5a00}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -35,7 +35,7 @@ label{display:block;font-weight:800;margin:14px 0 7px}.input{width:100%;border:1
 
  <section id="setup" class="card">
   <h1>Build vocabulary that sticks</h1>
-  <p>WordQuest now draws its vocabulary from the 1,400-word D1 bank, adapts the Gem range to performance and records each attempt.</p>
+  <p>WordQuest draws from the 1,400-word D1 bank, adapts the Gem range to performance, uses child-friendly definitions and plausible distractors, and records each attempt.</p>
   <label>Student name</label><input id="name" class="input" maxlength="40" placeholder="e.g. Aaryan">
   <div class="row">
    <div><label>Age</label><input id="age" class="input" type="number" min="4" max="13" value="8"></div>
@@ -122,29 +122,152 @@ function makeQuestion(w){
  const types=['meaning','word_from_definition'];
  if((w.synonyms||[]).length)types.push('synonym');
  if((w.antonyms||[]).length)types.push('antonym');
- if((w.examples||[]).length && !(w.examples[0]||'').startsWith('Try using'))types.push('context');
+ if((w.examples||[]).length)types.push('context');
+
  const type=types[Math.floor(Math.random()*types.length)];
- const others=shuffle(session.words.filter(x=>x.id!==w.id&&x.definition));
+ const samePos=session.words.filter(x=>x.id!==w.id && x.definition && samePartOfSpeech(w,x));
+ const others=samePos.length>=3?samePos:session.words.filter(x=>x.id!==w.id&&x.definition);
+
  let q,correct,opts,displayWord=true,example=null;
+
  if(type==='meaning'){
-   q=`What does “${w.lemma}” mean?`;correct=w.definition;opts=[correct,...others.slice(0,3).map(x=>x.definition)];
+   q=`What does “${w.lemma}” mean?`;
+   correct=w.definition;
+   opts=[correct,...definitionDistractors(w,others,3)];
  }else if(type==='word_from_definition'){
-   q=`Which word best matches this meaning: “${w.definition}”?`;correct=w.lemma;opts=[correct,...others.slice(0,3).map(x=>x.lemma)];displayWord=false;
+   q=`Which word best matches this meaning: “${w.definition}”?`;
+   correct=w.lemma;
+   opts=[correct,...wordDistractors(w,others,3)];
+   displayWord=false;
  }else if(type==='synonym'){
-   correct=w.synonyms[0];q=`Which word is closest in meaning to “${w.lemma}”?`;opts=[correct,...distractorWords(w,correct,3)];
+   correct=w.synonyms[0];
+   q=`Which word is closest in meaning to “${w.lemma}”?`;
+   opts=[correct,...synonymDistractors(w,others,correct,3)];
  }else if(type==='antonym'){
-   correct=w.antonyms[0];q=`Which word is most nearly the opposite of “${w.lemma}”?`;opts=[correct,...distractorWords(w,correct,3)];
+   correct=w.antonyms[0];
+   q=`Which word is most nearly the opposite of “${w.lemma}”?`;
+   opts=[correct,...antonymDistractors(w,others,correct,3)];
  }else{
-   example=w.examples[0];q=`In this sentence, what does “${w.lemma}” most nearly mean?`;correct=w.definition;opts=[correct,...others.slice(0,3).map(x=>x.definition)];
+   example=w.examples[0];
+   q=`In this sentence, what does “${w.lemma}” most nearly mean?`;
+   correct=w.definition;
+   opts=[correct,...contextDistractors(w,others,3)];
  }
- opts=unique(opts).slice(0,4);
- while(opts.length<4){const x=others.find(z=>!opts.includes(z.lemma)&&!opts.includes(z.definition));if(!x)break;opts.push(type==='meaning'||type==='context'?x.definition:x.lemma)}
+
+ opts=unique(opts.filter(isGoodOption)).slice(0,4);
+ const emergency=others.flatMap(x=>[x.definition,x.lemma]).filter(isGoodOption);
+ for(const x of emergency){if(opts.length>=4)break;if(!opts.includes(x))opts.push(x)}
+
  return {w,type,q,correct,opts:shuffle(opts),displayWord,example};
 }
-function distractorWords(w,correct,n){
- const pool=[...(w.synonyms||[]).slice(1),...(w.antonyms||[]),...session.words.map(x=>x.lemma)].filter(x=>x&&x!==correct&&x!==w.lemma);
- return unique(shuffle(pool)).slice(0,n);
+
+function samePartOfSpeech(a,b){
+ const pa=String(a.part_of_speech||a.stored_pos||'').toLowerCase();
+ const pb=String(b.part_of_speech||b.stored_pos||'').toLowerCase();
+ return pa && pb && pa===pb;
 }
+
+function definitionDistractors(w,pool,n){
+ return rankDefinitions(w,pool)
+   .map(x=>x.definition)
+   .filter(isGoodOption)
+   .slice(0,n);
+}
+
+function contextDistractors(w,pool,n){
+ // For context questions, same POS matters more than random semantic distance.
+ return rankDefinitions(w,pool,true)
+   .map(x=>x.definition)
+   .filter(isGoodOption)
+   .slice(0,n);
+}
+
+function wordDistractors(w,pool,n){
+ return rankWords(w,pool).map(x=>x.lemma).slice(0,n);
+}
+
+function synonymDistractors(w,pool,correct,n){
+ const candidates=[
+   ...(w.antonyms||[]),                      // plausible because related to the target
+   ...rankWords(w,pool).map(x=>x.lemma),    // same-POS, similar difficulty
+   ...pool.flatMap(x=>x.synonyms||[])
+ ];
+ return unique(candidates)
+   .filter(x=>x!==correct && x!==w.lemma && isGoodWordOption(x))
+   .slice(0,n);
+}
+
+function antonymDistractors(w,pool,correct,n){
+ const candidates=[
+   ...(w.synonyms||[]),                     // tempting but directionally wrong
+   ...rankWords(w,pool).map(x=>x.lemma),
+   ...pool.flatMap(x=>x.antonyms||[])
+ ];
+ return unique(candidates)
+   .filter(x=>x!==correct && x!==w.lemma && isGoodWordOption(x))
+   .slice(0,n);
+}
+
+function rankDefinitions(w,pool,context=false){
+ return [...pool]
+   .filter(x=>isGoodOption(x.definition))
+   .map(x=>({x,score:
+      (samePartOfSpeech(w,x)?8:0)
+      + (10-Math.min(10,Math.abs((x.gem_score||50)-(w.gem_score||50))/4))
+      + lexicalShapeScore(w.definition,x.definition)
+      + (context?2:0)
+   }))
+   .sort((a,b)=>b.score-a.score)
+   .map(o=>o.x);
+}
+
+function rankWords(w,pool){
+ return [...pool]
+   .filter(x=>isGoodWordOption(x.lemma))
+   .map(x=>({x,score:
+      (samePartOfSpeech(w,x)?8:0)
+      + (10-Math.min(10,Math.abs((x.gem_score||50)-(w.gem_score||50))/4))
+      + wordShapeScore(w.lemma,x.lemma)
+   }))
+   .sort((a,b)=>b.score-a.score)
+   .map(o=>o.x);
+}
+
+function lexicalShapeScore(a,b){
+ a=String(a||'').toLowerCase();b=String(b||'').toLowerCase();
+ let s=0;
+ const aw=a.split(/\s+/).length,bw=b.split(/\s+/).length;
+ if(Math.abs(aw-bw)<=2)s+=2;
+ if(Math.abs(a.length-b.length)<=30)s+=2;
+ if(/^(to |a |an |the )/.test(a)===/^(to |a |an |the )/.test(b))s+=2;
+ return s;
+}
+
+function wordShapeScore(a,b){
+ a=String(a||'');b=String(b||'');
+ let s=0;
+ if(Math.abs(a.length-b.length)<=3)s+=2;
+ if(a[0]===b[0])s+=1;
+ return s;
+}
+
+function isGoodOption(x){
+ const s=String(x||'').trim();
+ if(!s)return false;
+ const l=s.toLowerCase();
+ if(l.includes('a vocabulary word to learn and use accurately'))return false;
+ if(l.includes('needs more context'))return false;
+ if(l.includes('three degrees of comparison'))return false;
+ if(l.includes('(grammar)'))return false;
+ if(s.length>150)return false;
+ return true;
+}
+
+function isGoodWordOption(x){
+ const s=String(x||'').trim();
+ return /^[A-Za-z][A-Za-z -]{1,30}$/.test(s);
+}
+
 function unique(a){return [...new Set(a.map(x=>String(x).trim()).filter(Boolean))]}
 function spoken(x){return `${x.example?x.example+'. ':''}${x.q}`}
 function renderQuestion(){
