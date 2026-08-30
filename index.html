@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>WordQuest — Adaptive Vocabulary v3.2</title>
+<title>WordQuest — Adaptive Vocabulary v4</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--text:#202431;--muted:#6d7380;--accent:#5b5bd6;--ok:#17864b;--bad:#b52a39;--border:#e5e7ef;--soft:#f2f3f8;--gold:#8a5a00}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -31,11 +31,11 @@ label{display:block;font-weight:800;margin:14px 0 7px}.input{width:100%;border:1
 </head>
 <body>
 <div class="app">
- <div class="top"><div class="brand">WordQuest</div><div id="pill" class="pill">D1 adaptive vocabulary</div></div>
+ <div class="top"><div class="brand">WordQuest</div><div id="pill" class="pill">V4 curriculum</div></div>
 
  <section id="setup" class="card">
   <h1>Build vocabulary that sticks</h1>
-  <p>WordQuest draws from the 1,400-word D1 bank, adapts the Gem range to performance, uses child-friendly definitions and plausible distractors, and records each attempt.</p>
+  <p>WordQuest now teaches from a canonical curriculum layer: one stable, child-appropriate primary meaning per word and year, with adaptive Gem difficulty and mastery tracking.</p>
   <label>Student name</label><input id="name" class="input" maxlength="40" placeholder="e.g. Aaryan">
   <div class="row">
    <div><label>Age</label><input id="age" class="input" type="number" min="4" max="13" value="8"></div>
@@ -102,7 +102,7 @@ async function startSession(){
  $('quiz').innerHTML='<div class="loading">Loading an adaptive set from the vocabulary bank…</div>';
  try{
    const data=await api(`/api/session?year=${encodeURIComponent(state.year)}&student_id=${state.studentId}&targetGem=${Math.round(state.targetGem)}&count=${session.n}&radius=24`);
-   session.words=data.results||[];
+   session.words=(data.results||[]).filter(w=>w.definition && !String(w.definition).toLowerCase().includes('needs more context'));
    if(session.words.length<4)throw new Error('Not enough vocabulary returned for a session.');
    nextQuestion();
  }catch(e){
