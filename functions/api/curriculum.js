@@ -4,7 +4,7 @@ export async function onRequestGet({request,env}){
   const year=(u.searchParams.get('year')||'Y4').toUpperCase();
   const {results}=await env.DB.prepare(`
    SELECT cc.year_group,w.lemma,cc.canonical_definition,cc.canonical_pos,
-          cc.content_status,cc.source,wl.gem_score
+          cc.content_status,cc.source,cc.misconception_distractors_json,wl.gem_score
    FROM curriculum_content cc
    JOIN words w ON w.id=cc.word_id
    JOIN word_levels wl ON wl.word_id=cc.word_id AND wl.year_group=cc.year_group

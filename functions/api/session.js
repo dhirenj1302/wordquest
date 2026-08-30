@@ -37,6 +37,7 @@ async function getCandidates(env,year,studentId,target,radius,limit){
         cc.synonyms_json AS cc_synonyms_json,
         cc.antonyms_json AS cc_antonyms_json,
         cc.examples_json AS cc_examples_json,
+        cc.misconception_distractors_json,
         cc.content_status
  FROM word_levels wl
  JOIN words w ON w.id=wl.word_id
@@ -64,6 +65,7 @@ async function ensureCurriculum(env,w){
    synonyms:parse(w.cc_synonyms_json),
    antonyms:parse(w.cc_antonyms_json),
    examples:parse(w.cc_examples_json),
+   misconception_distractors:parse(w.misconception_distractors_json),
    content_status:w.content_status||'curated'
   };
  }
@@ -100,7 +102,7 @@ async function ensureCurriculum(env,w){
           JSON.stringify(lex.synonyms),JSON.stringify(lex.antonyms),
           JSON.stringify(lex.examples)).run();
 
-  return {...w,...lex,content_status:'auto-reviewed'};
+  return {...w,...lex,misconception_distractors:[],content_status:'auto-reviewed'};
  }catch{
   return safeFallback(w);
  }
@@ -187,7 +189,7 @@ function readability(s){
 }
 function safeFallback(w){
  return {...w,definition:null,part_of_speech:w.stored_pos||null,
-  synonyms:[],antonyms:[],examples:[],content_status:'pending'};
+  synonyms:[],antonyms:[],examples:[],misconception_distractors:[],content_status:'pending'};
 }
 function goodDefinition(s){
  if(!s)return false;
