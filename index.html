@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>WordQuest — Adaptive Vocabulary v4</title>
+<title>WordQuest — Adaptive Vocabulary v4.1</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--text:#202431;--muted:#6d7380;--accent:#5b5bd6;--ok:#17864b;--bad:#b52a39;--border:#e5e7ef;--soft:#f2f3f8;--gold:#8a5a00}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -168,19 +168,82 @@ function samePartOfSpeech(a,b){
 }
 
 function definitionDistractors(w,pool,n){
- return rankDefinitions(w,pool)
+ const curated=curatedMisconceptions(w);
+ if(curated.length>=n)return curated.slice(0,n);
+
+ const generated=rankDefinitions(w,pool)
    .map(x=>x.definition)
-   .filter(isGoodOption)
-   .slice(0,n);
+   .filter(x=>isSafeDistractor(w,x,false));
+
+ return unique([...curated,...generated]).slice(0,n);
 }
 
 function contextDistractors(w,pool,n){
- // For context questions, same POS matters more than random semantic distance.
- return rankDefinitions(w,pool,true)
+ // Context questions are stricter because a neighbouring meaning can
+ // describe the behaviour in the sentence without defining the target word.
+ const curated=curatedMisconceptions(w);
+ if(curated.length>=n)return curated.slice(0,n);
+
+ const generated=rankDefinitions(w,pool,true)
    .map(x=>x.definition)
-   .filter(isGoodOption)
-   .slice(0,n);
+   .filter(x=>isSafeDistractor(w,x,true));
+
+ return unique([...curated,...generated]).slice(0,n);
 }
+
+function curatedMisconceptions(w){
+ return unique(w.misconception_distractors||[])
+   .filter(isGoodOption)
+   .filter(x=>isSafeDistractor(w,x,true));
+}
+
+function isSafeDistractor(w,candidate,forContext=false){
+ if(!isGoodOption(candidate))return false;
+ const target=String(w.definition||'').toLowerCase();
+ const cand=String(candidate||'').toLowerCase();
+
+ if(semanticOverlap(target,cand)>=0.28)return false;
+
+ const banned=[w.lemma,...(w.synonyms||[])].map(x=>String(x).toLowerCase());
+ if(banned.some(x=>x.length>3 && new RegExp(`\\b${escapeRX(x)}\\b`,'i').test(cand)))return false;
+
+ if(forContext && behaviouralOverlap(target,cand))return false;
+ return true;
+}
+
+function semanticOverlap(a,b){
+ const stop=new Set(['the','a','an','and','or','to','of','in','on','for','with','your','you','is','are','be','being','something','someone','very','than','that','this','it','as','by','from','after','before','without']);
+ const ta=new Set(tokenise(a).filter(x=>x.length>3&&!stop.has(x)));
+ const tb=new Set(tokenise(b).filter(x=>x.length>3&&!stop.has(x)));
+ if(!ta.size||!tb.size)return 0;
+ let shared=0;
+ for(const x of ta)if(tb.has(x))shared++;
+ return shared/Math.min(ta.size,tb.size);
+}
+
+function behaviouralOverlap(a,b){
+ const families=[
+  ['careful','carefully','thought','considered','precise','steady','effort','thorough'],
+  ['bold','risk','daring','fearless','brave'],
+  ['clear','clearly','express','explain','articulate'],
+  ['uncertain','hesitation','hesitant','tentative','doubt'],
+  ['persistent','continue','effort','determined','tenacious'],
+  ['kind','generous','help','charitable','benevolent'],
+  ['honest','direct','frank','candid'],
+  ['practical','workable','possible','feasible'],
+  ['harm','harmful','damage','damaging','detrimental'],
+  ['watchful','alert','attentive','vigilant']
+ ];
+ const aa=new Set(tokenise(a)),bb=new Set(tokenise(b));
+ for(const fam of families){
+  const x=fam.some(t=>aa.has(t)), y=fam.some(t=>bb.has(t));
+  if(x&&y)return true;
+ }
+ return false;
+}
+
+function tokenise(s){return String(s||'').toLowerCase().match(/[a-z]+/g)||[]}
+function escapeRX(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
 
 function wordDistractors(w,pool,n){
  return rankWords(w,pool).map(x=>x.lemma).slice(0,n);
