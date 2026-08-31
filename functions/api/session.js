@@ -1,10 +1,13 @@
+import {requireStudent,authResponse} from '../_lib/auth.js';
+
 const DICT_BASE='https://api.dictionaryapi.dev/api/v2/entries/en/';
 
 export async function onRequestGet({request,env}){
  try{
+  const student=await requireStudent(request,env);
   const u=new URL(request.url);
   const year=validYear(u.searchParams.get('year'))||'Y3';
-  const studentId=Number(u.searchParams.get('student_id')||0);
+  const studentId=student.id;
   const targetGem=clamp(Number(u.searchParams.get('targetGem')||55),5,95);
   const count=clamp(Number(u.searchParams.get('count')||12),5,20);
   const radius=clamp(Number(u.searchParams.get('radius')||22),10,45);
@@ -22,6 +25,7 @@ export async function onRequestGet({request,env}){
    content_source:'WordQuest curriculum layer'
   },{headers:{'Cache-Control':'no-store'}});
  }catch(err){
+  if(err?.status)return authResponse(err);
   return Response.json({error:'session_failed',detail:String(err?.message||err)},{status:500});
  }
 }
