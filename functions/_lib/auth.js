@@ -1,4 +1,4 @@
-const ITERATIONS=120000;
+const ITERATIONS=100000;
 const SESSION_DAYS=90;
 
 export function normaliseUsername(v){
