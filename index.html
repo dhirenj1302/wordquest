@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>WordQuest — Adaptive Vocabulary v4.1</title>
+<title>WordQuest — Persistent Progress v4.2</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--text:#202431;--muted:#6d7380;--accent:#5b5bd6;--ok:#17864b;--bad:#b52a39;--border:#e5e7ef;--soft:#f2f3f8;--gold:#8a5a00}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
-.app{max-width:720px;margin:auto;min-height:100vh;padding:18px 16px 44px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.app{max-width:760px;margin:auto;min-height:100vh;padding:18px 16px 44px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .brand{font-size:22px;font-weight:900;letter-spacing:-.6px}.pill{background:#ececfd;color:#4141ae;padding:7px 10px;border-radius:99px;font-size:12px;font-weight:800}
 .card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:22px;box-shadow:0 10px 30px rgba(30,35,70,.07)}
 h1,h2,h3{margin:0 0 10px;letter-spacing:-.45px}p{color:var(--muted);line-height:1.5}.hidden{display:none!important}
@@ -15,7 +15,8 @@ label{display:block;font-weight:800;margin:14px 0 7px}.input{width:100%;border:1
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{width:100%;border:0;border-radius:14px;padding:14px 16px;margin-top:14px;font-size:16px;font-weight:850;cursor:pointer;background:var(--accent);color:#fff}
 .btn.secondary{background:var(--soft);color:#343947}.btn.ghost{background:#fff;color:var(--accent);border:1px solid #d8d9fa}.btn:disabled{opacity:.45;cursor:not-allowed}
 .note{background:#f8f8fc;border-radius:14px;padding:11px 13px;margin-top:12px;font-size:13px;color:var(--muted)}
-.nav{display:flex;gap:8px;margin-bottom:14px}.nav button{flex:1;border:1px solid var(--border);background:white;border-radius:12px;padding:10px;font-weight:800}.nav button.active{background:#ececfd;color:#4141ae}
+.authTabs,.nav{display:flex;gap:8px;margin-bottom:14px}.authTabs button,.nav button{flex:1;border:1px solid var(--border);background:white;border-radius:12px;padding:10px;font-weight:800;cursor:pointer}
+.authTabs button.active,.nav button.active{background:#ececfd;color:#4141ae}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}.stat{background:#f8f8fc;border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center}.stat b{display:block;font-size:18px}.stat span{font-size:11px;color:var(--muted)}
 .progressWrap{height:8px;background:#e9ebf2;border-radius:99px;overflow:hidden;margin:12px 0 18px}.progress{height:100%;background:var(--accent);width:0;transition:.2s}
 .qtype{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);font-weight:900;margin-bottom:9px}.question{font-size:24px;font-weight:900;line-height:1.3;margin-bottom:14px}
@@ -26,87 +27,137 @@ label{display:block;font-weight:800;margin:14px 0 7px}.input{width:100%;border:1
 .mastery{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}.tag{font-size:11px;padding:5px 8px;border-radius:99px;background:#eff0f5}.center{text-align:center}.big{font-size:50px;font-weight:950;letter-spacing:-2px}
 .loading{padding:35px 5px;text-align:center;color:var(--muted)}.error{background:#fff0f2;border:1px solid #e3a1a9;padding:13px;border-radius:14px;color:#8e2632}
 .audio{display:inline-block;border:1px solid var(--border);background:#fff;padding:8px 10px;border-radius:11px;font-weight:800;cursor:pointer;margin-bottom:12px}
-@media(max-width:520px){.row{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.card{padding:18px}.question{font-size:22px}}
+.insight{background:#f3f3ff;border:1px solid #ddddff;border-radius:14px;padding:14px;margin:10px 0 16px;line-height:1.5}
+.miniGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 16px}.miniGrid div{background:#f8f8fc;border:1px solid var(--border);border-radius:13px;padding:10px;text-align:center}.miniGrid b{display:block;font-size:18px}.miniGrid span{font-size:10px;color:var(--muted)}
+.calendar{display:grid;grid-template-columns:repeat(14,1fr);gap:5px;margin:10px 0 18px}.day{aspect-ratio:1;border-radius:7px;background:#eef0f5;font-size:9px;display:flex;align-items:center;justify-content:center;color:#8b909b}.day.active{background:#5b5bd6;color:white;font-weight:900}
+.codeHelp{font-size:12px;color:var(--muted);margin-top:5px}.divider{height:1px;background:var(--border);margin:18px 0}
+@media(max-width:560px){.row{grid-template-columns:1fr}.stats,.miniGrid{grid-template-columns:repeat(2,1fr)}.card{padding:18px}.question{font-size:22px}}
 </style>
 </head>
 <body>
 <div class="app">
- <div class="top"><div class="brand">WordQuest</div><div id="pill" class="pill">V4 curriculum</div></div>
+ <div class="top"><div class="brand">WordQuest</div><div id="pill" class="pill">Persistent progress</div></div>
 
  <section id="setup" class="card">
-  <h1>Build vocabulary that sticks</h1>
-  <p>WordQuest now teaches from a canonical curriculum layer: one stable, child-appropriate primary meaning per word and year, with adaptive Gem difficulty and mastery tracking.</p>
-  <label>Student name</label><input id="name" class="input" maxlength="40" placeholder="e.g. Aaryan">
-  <div class="row">
-   <div><label>Age</label><input id="age" class="input" type="number" min="4" max="13" value="8"></div>
-   <div><label>School year</label><select id="year" class="input"><option>R</option><option>Y1</option><option>Y2</option><option>Y3</option><option selected>Y4</option><option>Y5</option><option>Y6</option></select></div>
+  <div class="authTabs"><button id="loginTab" class="active">Sign in</button><button id="createTab">Create learner</button></div>
+
+  <div id="loginPane">
+   <h1>Continue your WordQuest</h1>
+   <p>Use the same username and 6-digit code on any device. A parent or teacher can use the same details to open the progress view.</p>
+   <label>Username</label><input id="loginUsername" class="input" autocomplete="username" maxlength="24" placeholder="e.g. aaryan.j">
+   <label>6-digit code</label><input id="loginCode" class="input" autocomplete="current-password" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••••" type="password">
+   <button id="loginBtn" class="btn">Sign in</button>
   </div>
-  <div class="row">
-   <div><label>Questions</label><select id="count" class="input"><option>8</option><option selected>10</option><option>12</option><option>15</option></select></div>
-   <div><label>Starting challenge</label><select id="challenge" class="input"><option value="40">Steady</option><option value="55" selected>Strong</option><option value="70">Stretch</option></select></div>
+
+  <div id="createPane" class="hidden">
+   <h1>Create a learner</h1>
+   <p>The username + 6-digit code becomes the learner's persistent WordQuest sign-in. Choose something the family can remember but other pupils will not guess.</p>
+   <label>Student name</label><input id="name" class="input" maxlength="40" placeholder="e.g. Aaryan">
+   <label>Unique username</label><input id="username" class="input" maxlength="24" placeholder="e.g. aaryan.j">
+   <label>6-digit code</label><input id="code" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="Choose 6 digits" type="password">
+   <div class="codeHelp">Exactly 6 digits. The code is hashed before being stored; WordQuest does not store it as readable text.</div>
+   <div class="row">
+    <div><label>Age</label><input id="age" class="input" type="number" min="4" max="13" value="8"></div>
+    <div><label>School year</label><select id="year" class="input"><option>R</option><option>Y1</option><option>Y2</option><option>Y3</option><option selected>Y4</option><option>Y5</option><option>Y6</option></select></div>
+   </div>
+   <div class="row">
+    <div><label>Questions</label><select id="count" class="input"><option>8</option><option selected>10</option><option>12</option><option>15</option></select></div>
+    <div><label>Starting challenge</label><select id="challenge" class="input"><option value="40">Steady</option><option value="55" selected>Strong</option><option value="70">Stretch</option></select></div>
+   </div>
+   <button id="createBtn" class="btn">Create account & start</button>
+   <button id="claimBtn" class="btn secondary hidden">Attach sign-in to saved learner</button>
   </div>
-  <div class="note">Age suggests a UK school year automatically; you can override it. The Gem target then changes with demonstrated performance.</div>
-  <button id="start" class="btn">Start practice</button>
-  <button id="resume" class="btn secondary">Resume saved learner</button>
  </section>
 
  <section id="main" class="hidden">
-  <div class="nav"><button id="practiceTab" class="active">Practice</button><button id="parentTab">Parent view</button><button id="resetTab">Reset</button></div>
+  <div class="nav"><button id="practiceTab" class="active">Practice</button><button id="parentTab">Progress</button><button id="resetTab">Sign out</button></div>
   <div id="practiceCard" class="card">
-   <div class="stats"><div class="stat"><b id="xp">0</b><span>Gems earned</span></div><div class="stat"><b id="acc">—</b><span>Accuracy</span></div><div class="stat"><b id="level">—</b><span>Gem target</span></div><div class="stat"><b id="yearStat">—</b><span>Current bank</span></div></div>
+   <div class="stats"><div class="stat"><b id="xp">0</b><span>Gems earned</span></div><div class="stat"><b id="acc">—</b><span>This device</span></div><div class="stat"><b id="level">—</b><span>Gem target</span></div><div class="stat"><b id="yearStat">—</b><span>Current bank</span></div></div>
    <div class="progressWrap"><div id="progress" class="progress"></div></div>
    <div id="quiz"></div>
   </div>
+
   <div id="parentCard" class="card hidden">
    <h2 id="parentTitle">Progress</h2><p id="parentText"></p>
-   <div class="stats"><div class="stat"><b id="pAnswered">0</b><span>Answered</span></div><div class="stat"><b id="pAcc">—</b><span>Accuracy</span></div><div class="stat"><b id="pStrong">0</b><span>Strong words</span></div><div class="stat"><b id="pTarget">—</b><span>Gem target</span></div></div>
-   <h3>Words to revisit</h3><div id="weak"></div>
-   <h3 style="margin-top:20px">Strongest words</h3><div id="strong"></div>
+   <div class="stats"><div class="stat"><b id="pSessions">0</b><span>Sessions / 7d</span></div><div class="stat"><b id="pStreak">0d</b><span>Practice streak</span></div><div class="stat"><b id="pAcc">—</b><span>All-time accuracy</span></div><div class="stat"><b id="pMastered">0</b><span>Words mastered</span></div></div>
+   <div id="improvement"></div>
+   <h3>Practice frequency</h3><div id="frequency"></div><div id="calendar" class="calendar"></div>
+   <h3>Words needing attention</h3><div id="weak"></div>
+   <h3 style="margin-top:20px">Strong words</h3><div id="strong"></div>
+   <h3 style="margin-top:20px">Recent practice</h3><div id="recentSessions"></div>
   </div>
  </section>
 </div>
 
 <script>
 const $=id=>document.getElementById(id);
-const KEY='wordquest_v31';
-let state=null, session=null;
+const AUTH_KEY='wordquest_v42_auth', LEGACY_KEY='wordquest_v31';
+let state=null,session=null,authToken=null;
 const YEAR_INDEX={R:0,Y1:1,Y2:2,Y3:3,Y4:4,Y5:5,Y6:6};
 const YEARS=['R','Y1','Y2','Y3','Y4','Y5','Y6'];
 
-$('age').addEventListener('change',()=>{$('year').value=ageToYear(Number($('age').value))});
-function ageToYear(age){if(age<=4)return'R';if(age===5)return'Y1';if(age===6)return'Y2';if(age===7)return'Y3';if(age===8)return'Y4';if(age===9)return'Y5';return'Y6'}
-function save(){localStorage.setItem(KEY,JSON.stringify(state))}
-function load(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{return null}}
+function authSave(){localStorage.setItem(AUTH_KEY,JSON.stringify({token:authToken,state}))}
+function authLoad(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{return null}}
+function save(){if(state)authSave()}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function ageToYear(age){if(age<=4)return'R';if(age===5)return'Y1';if(age===6)return'Y2';if(age===7)return'Y3';if(age===8)return'Y4';if(age===9)return'Y5';return'Y6'}
+$('age').addEventListener('change',()=>{$('year').value=ageToYear(Number($('age').value))});
 function speak(t){if(!('speechSynthesis'in window)||!t)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(t).replace(/[“”]/g,'"'));u.lang='en-GB';u.rate=(state?.age||8)<=6?.84:.93;speechSynthesis.speak(u)}
-async function api(url,opt){const r=await fetch(url,opt);let j=null;try{j=await r.json()}catch{}if(!r.ok)throw new Error(j?.detail||j?.error||`HTTP ${r.status}`);return j}
+async function api(url,opt={}){const r=await fetch(url,opt);let j=null;try{j=await r.json()}catch{}if(!r.ok)throw new Error(friendly(j?.error||j?.detail||`HTTP ${r.status}`));return j}
+async function apiAuth(url,opt={}){
+ opt.headers={...(opt.headers||{}),Authorization:`Bearer ${authToken}`};
+ try{return await api(url,opt)}catch(e){if(/expired|sign in required/i.test(e.message)){localStorage.removeItem(AUTH_KEY);location.reload()}throw e}
+}
+function friendly(s){return String(s||'').replaceAll('_',' ').replace(/^./,c=>c.toUpperCase())}
 
-$('start').onclick=async()=>{
- const name=$('name').value.trim(),age=Number($('age').value),year=$('year').value;
- if(!name)return alert('Please enter a student name.');
- $('start').disabled=true;$('start').textContent='Creating learner…';
+$('loginTab').onclick=()=>{$('loginPane').classList.remove('hidden');$('createPane').classList.add('hidden');$('loginTab').classList.add('active');$('createTab').classList.remove('active')};
+$('createTab').onclick=()=>{$('createPane').classList.remove('hidden');$('loginPane').classList.add('hidden');$('createTab').classList.add('active');$('loginTab').classList.remove('active')};
+
+$('loginBtn').onclick=async()=>{
+ const username=$('loginUsername').value.trim(),code=$('loginCode').value.trim();
+ if(!username||code.length!==6)return alert('Enter the username and 6-digit code.');
+ $('loginBtn').disabled=true;$('loginBtn').textContent='Signing in…';
  try{
-   const student=await api('/api/students',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name,year_group:year,birth_year:new Date().getFullYear()-age})});
-   state={studentId:student.id,name,age,year,targetGem:Number($('challenge').value),xp:0,total:0,correct:0,sessionCount:Number($('count').value)};
-   save();showMain();await startSession();
- }catch(e){alert('Could not create learner: '+e.message)}
- finally{$('start').disabled=false;$('start').textContent='Start practice'}
+  const d=await api('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',username,code})});
+  acceptLogin(d);showMain();await startSession();
+ }catch(e){alert(e.message)}finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Sign in'}
 };
-$('resume').onclick=async()=>{state=load();if(!state)return alert('No saved WordQuest learner on this device.');$('name').value=state.name;$('age').value=state.age;$('year').value=state.year;showMain();await startSession()};
-const existing=load();if(existing)$('resume').textContent=`Resume ${existing.name}`;
 
+$('createBtn').onclick=async()=>{
+ const name=$('name').value.trim(),username=$('username').value.trim(),code=$('code').value.trim();
+ const age=Number($('age').value),year=$('year').value;
+ if(!name)return alert('Enter the student name.');
+ if(!/^[a-zA-Z0-9][a-zA-Z0-9._-]{2,23}$/.test(username))return alert('Username must be 3–24 characters using letters, numbers, dots, dashes or underscores.');
+ if(!/^\d{6}$/.test(code))return alert('The code must be exactly 6 digits.');
+ $('createBtn').disabled=true;$('createBtn').textContent='Creating…';
+ try{
+  const d=await api('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'register',name,username,code,year_group:year,birth_year:new Date().getFullYear()-age})});
+  acceptLogin(d,{age,targetGem:Number($('challenge').value),sessionCount:Number($('count').value)});
+  showMain();await startSession();
+ }catch(e){alert(e.message)}finally{$('createBtn').disabled=false;$('createBtn').textContent='Create account & start'}
+};
+
+function acceptLogin(d,extra={}){
+ authToken=d.token;const st=d.student;
+ const age=extra.age || (st.birth_year?new Date().getFullYear()-st.birth_year:8);
+ state={studentId:st.id,name:st.name,username:st.username,age,year:st.current_year_group,targetGem:extra.targetGem||55,xp:0,total:0,correct:0,sessionCount:extra.sessionCount||10};
+ authSave();
+}
 function showMain(){$('setup').classList.add('hidden');$('main').classList.remove('hidden');updateStats()}
 async function startSession(){
- session={i:0,n:state.sessionCount||10,correct:0,words:[],question:null,selected:null,hints:0,start:0,seen:new Set()};
- $('quiz').innerHTML='<div class="loading">Loading an adaptive set from the vocabulary bank…</div>';
+ session={i:0,n:state.sessionCount||10,correct:0,words:[],question:null,selected:null,hints:0,hintsTotal:0,start:0,seen:new Set(),practiceSessionId:null,startXp:state.xp};
+ $('practiceCard').classList.remove('hidden');$('parentCard').classList.add('hidden');$('practiceTab').classList.add('active');$('parentTab').classList.remove('active');
+ $('quiz').innerHTML='<div class="loading">Loading an adaptive set from your vocabulary record…</div>';
  try{
-   const data=await api(`/api/session?year=${encodeURIComponent(state.year)}&student_id=${state.studentId}&targetGem=${Math.round(state.targetGem)}&count=${session.n}&radius=24`);
+   const ps=await apiAuth('/api/practice',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({year_group:state.year,start_target_gem:state.targetGem})});
+   session.practiceSessionId=ps.practice_session_id;
+   const data=await apiAuth(`/api/session?year=${encodeURIComponent(state.year)}&targetGem=${Math.round(state.targetGem)}&count=${session.n}&radius=24`);
    session.words=(data.results||[]).filter(w=>w.definition && !String(w.definition).toLowerCase().includes('needs more context'));
    if(session.words.length<4)throw new Error('Not enough vocabulary returned for a session.');
    nextQuestion();
  }catch(e){
-   $('quiz').innerHTML=`<div class="error"><b>Could not load the vocabulary session.</b><br>${esc(e.message)}<br><br>Check that migration 0009 has been run and the DB binding is active.</div><button class="btn" onclick="startSession()">Try again</button>`;
+   $('quiz').innerHTML=`<div class="error"><b>Could not load the vocabulary session.</b><br>${esc(e.message)}</div><button class="btn" onclick="startSession()">Try again</button>`;
  }
 }
 function nextQuestion(){
@@ -114,8 +165,7 @@ function nextQuestion(){
  const w=pickWord();session.question=makeQuestion(w);session.selected=null;session.hints=0;session.start=Date.now();renderQuestion();setTimeout(()=>speak(spoken(session.question)),200);
 }
 function pickWord(){
- const available=session.words.filter(w=>!session.seen.has(w.id));
- const pool=available.length?available:session.words;
+ const available=session.words.filter(w=>!session.seen.has(w.id));const pool=available.length?available:session.words;
  const w=pool[Math.floor(Math.random()*pool.length)];session.seen.add(w.id);return w;
 }
 function makeQuestion(w){
@@ -367,28 +417,80 @@ async function submit(){
  state.total++;save();
  $('feedback').innerHTML=`<div class="feedback ${ok?'ok':'bad'}">${ok?'Correct.':'Not quite.'}<br><span class="small"><b>${esc(x.w.lemma)}</b>: ${esc(x.w.definition)}</span></div><button id="next" class="btn">${session.i+1>=session.n?'See results':'Next question'}</button>`;
  speak(ok?`Correct. ${x.w.lemma} means ${x.w.definition}`:`Not quite. ${x.w.lemma} means ${x.w.definition}`);
- api('/api/attempts',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({student_id:state.studentId,word_id:x.w.id,year_group:x.w.year_group,question_type:x.type,correct:ok,hints_used:session.hints,response_ms:response,gem_score:x.w.gem_score})}).catch(console.warn);
+ session.hintsTotal+=session.hints;
+ apiAuth('/api/attempts',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({practice_session_id:session.practiceSessionId,word_id:x.w.id,year_group:x.w.year_group,question_type:x.type,correct:ok,hints_used:session.hints,response_ms:response,gem_score:x.w.gem_score})}).catch(console.warn);
  $('next').onclick=()=>{session.i++;nextQuestion()};updateStats();
 }
-function finish(){
+async function finish(){
  $('progress').style.width='100%';const pct=Math.round(100*session.correct/session.n);
+ const sessionGems=state.xp-session.startXp;
+ if(session.practiceSessionId){
+   apiAuth('/api/practice',{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({
+     practice_session_id:session.practiceSessionId,question_count:session.n,correct_count:session.correct,
+     hints_used:session.hintsTotal,gems_earned:sessionGems,end_target_gem:state.targetGem
+   })}).catch(console.warn);
+ }
  maybePromoteYear(pct);
  $('quiz').innerHTML=`<div class="center"><div class="qtype">Session complete</div><div class="big">${pct}%</div><h2>${pct>=90?'Excellent mastery':pct>=75?'Strong progress':'Useful practice'}</h2><p>${session.correct}/${session.n} correct. Next Gem target: <b>${Math.round(state.targetGem)}</b>${state.yearPromotion?` · bank advanced to <b>${state.year}</b>`:''}.</p><button id="again" class="btn">Another session</button><button id="viewProgress" class="btn secondary">Parent view</button></div>`;
  state.yearPromotion=false;save();$('again').onclick=startSession;$('viewProgress').onclick=showParent;updateStats();
 }
 function maybePromoteYear(pct){
- if(pct>=90&&state.targetGem>=88&&state.year!=='Y6'){state.year=YEARS[YEAR_INDEX[state.year]+1];state.targetGem=38;state.yearPromotion=true;api('/api/students',{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({id:state.studentId,year_group:state.year})}).catch(console.warn)}
+ if(pct>=90&&state.targetGem>=88&&state.year!=='Y6'){state.year=YEARS[YEAR_INDEX[state.year]+1];state.targetGem=38;state.yearPromotion=true;apiAuth('/api/students',{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({year_group:state.year})}).catch(console.warn)}
 }
 function updateStats(){if(!state)return;$('xp').textContent=state.xp;$('acc').textContent=state.total?Math.round(100*state.correct/state.total)+'%':'—';$('level').textContent=Math.round(state.targetGem);$('yearStat').textContent=state.year;$('pill').textContent=`${state.name} · ${state.year}`}
 async function showParent(){
- $('practiceCard').classList.add('hidden');$('parentCard').classList.remove('hidden');$('practiceTab').classList.remove('active');$('parentTab').classList.add('active');
- $('parentTitle').textContent=`${state.name}'s progress`;$('parentText').textContent=`Current bank ${state.year}; adaptive Gem target ${Math.round(state.targetGem)}. Database mastery is based on repeated attempts, errors and hint use.`;
+ $('practiceCard').classList.add('hidden');$('parentCard').classList.remove('hidden');
+ $('practiceTab').classList.remove('active');$('parentTab').classList.add('active');
+ $('parentTitle').textContent=`${state.name}'s progress`;
+ $('parentText').textContent=`Signed in as ${state.username}. Progress is stored in WordQuest, so the same username and 6-digit code can be used on another device.`;
  try{
-  const d=await api(`/api/progress?student_id=${state.studentId}`);
-  $('pAnswered').textContent=d.totals?.answered||0;$('pAcc').textContent=d.totals?.answered?`${Math.round(d.totals.accuracy)}%`:'—';$('pStrong').textContent=d.strong?.length||0;$('pTarget').textContent=Math.round(state.targetGem);
-  $('weak').innerHTML=(d.weak||[]).length?d.weak.map(masterRow).join(''):'<p class="small">No weak words yet.</p>';
-  $('strong').innerHTML=(d.strong||[]).length?d.strong.map(masterRow).join(''):'<p class="small">No strong words yet.</p>';
+  const d=await apiAuth('/api/progress');
+  $('pSessions').textContent=d.practice?.sessions_7d||0;
+  $('pStreak').textContent=(d.practice?.current_streak_days||0)+'d';
+  $('pAcc').textContent=d.totals?.answered?`${Math.round(d.totals.accuracy)}%`:'—';
+  $('pMastered').textContent=d.mastery?.mastered||0;
+
+  const imp=d.improvement||{};
+  $('improvement').innerHTML=imp.enough_data
+    ? `<div class="insight"><b>Vocabulary trend</b><br>Recent accuracy: <b>${imp.recent_accuracy}%</b> (${signed(imp.accuracy_change)} pts vs early attempts). Average challenge: <b>${imp.recent_avg_gem} Gems</b> (${signed(imp.gem_change)} vs early attempts).</div>`
+    : `<div class="insight"><b>Vocabulary trend</b><br>Keep practising. WordQuest will show a reliable improvement comparison after at least 10–20 recorded attempts.</div>`;
+
+  $('frequency').innerHTML=`
+    <div class="miniGrid">
+      <div><b>${d.practice?.sessions_30d||0}</b><span>sessions / 30d</span></div>
+      <div><b>${d.practice?.active_days_30d||0}</b><span>active days / 30d</span></div>
+      <div><b>${d.practice?.questions_30d||0}</b><span>questions / 30d</span></div>
+      <div><b>${d.totals?.unique_words_seen||0}</b><span>words encountered</span></div>
+    </div>`;
+  renderPracticeCalendar(d.active_dates||[]);
+
+  $('weak').innerHTML=(d.difficult||[]).length
+    ? d.difficult.map(difficultRow).join('')
+    : '<p class="small">No difficult words identified yet.</p>';
+  $('strong').innerHTML=(d.strong||[]).length
+    ? d.strong.map(masterRow).join('')
+    : '<p class="small">No words have reached strong mastery yet.</p>';
+  $('recentSessions').innerHTML=(d.recent_sessions||[]).length
+    ? d.recent_sessions.map(sessionRow).join('')
+    : '<p class="small">No completed sessions yet.</p>';
  }catch(e){$('weak').innerHTML=`<div class="error">${esc(e.message)}</div>`}
+}
+function signed(n){n=Number(n||0);return n>0?`+${n}`:`${n}`}
+function difficultRow(x){
+ return `<div class="mastery"><div><b>${esc(x.lemma)}</b><div class="small">${x.exposures} exposures · ${x.incorrect} wrong · ${x.hints_used} hints</div></div><div class="tag">${Math.round(100*x.mastery)}% mastery</div></div>`;
+}
+function sessionRow(x){
+ const d=x.completed_at?new Date(x.completed_at.replace(' ','T')+'Z').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'';
+ return `<div class="mastery"><div><b>${d} · ${esc(x.year_group)}</b><div class="small">${x.correct_count}/${x.question_count} correct · ${x.gems_earned} Gems earned</div></div><div class="tag">${x.accuracy??0}%</div></div>`;
+}
+function renderPracticeCalendar(dates){
+ const set=new Set(dates);const cells=[];
+ for(let i=27;i>=0;i--){
+  const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-i);
+  const key=d.toISOString().slice(0,10),active=set.has(key);
+  cells.push(`<div class="day ${active?'active':''}" title="${key}">${d.getDate()}</div>`);
+ }
+ $('calendar').innerHTML=cells.join('');
 }
 function masterRow(x){return `<div class="mastery"><div><b>${esc(x.lemma)}</b><div class="small">${x.exposures} exposures · ${x.incorrect} errors · ${x.hints_used} hints</div></div><div class="tag">${Math.round(100*x.mastery)}%</div></div>`}
 $('practiceTab').onclick=()=>{$('parentCard').classList.add('hidden');$('practiceCard').classList.remove('hidden');$('practiceTab').classList.add('active');$('parentTab').classList.remove('active')};
@@ -396,6 +498,40 @@ $('parentTab').onclick=showParent;
 $('resetTab').onclick=()=>{if(confirm('Remove this saved learner from this device? Database history will remain.')){localStorage.removeItem(KEY);location.reload()}};
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function highlight(s,w){const safe=esc(s);const re=new RegExp(`\\b${String(w).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\b`,'ig');return safe.replace(re,m=>`<b>${m}</b>`)}
+
+
+function updateStats(){if(!state)return;$('xp').textContent=state.xp;$('acc').textContent=state.total?Math.round(100*state.correct/state.total)+'%':'—';$('level').textContent=Math.round(state.targetGem);$('yearStat').textContent=state.year;$('pill').textContent=`${state.username} · ${state.year}`}
+$('practiceTab').onclick=()=>{$('parentCard').classList.add('hidden');$('practiceCard').classList.remove('hidden');$('practiceTab').classList.add('active');$('parentTab').classList.remove('active')};
+$('parentTab').onclick=showParent;
+$('resetTab').onclick=async()=>{if(confirm('Sign out of this device? Progress will remain safely stored in WordQuest.')){try{await apiAuth('/api/auth',{method:'DELETE'})}catch{}localStorage.removeItem(AUTH_KEY);location.reload()}};
+
+(async function boot(){
+ const saved=authLoad();
+ if(saved?.token&&saved?.state){
+  authToken=saved.token;state=saved.state;
+  try{
+   const d=await apiAuth('/api/auth');
+   state.name=d.student.name;state.username=d.student.username;state.year=d.student.current_year_group;authSave();
+   showMain();await showParent();return;
+  }catch{localStorage.removeItem(AUTH_KEY)}
+ }
+ const legacy=(()=>{try{return JSON.parse(localStorage.getItem(LEGACY_KEY)||'null')}catch{return null}})();
+ if(legacy?.studentId){
+   $('createTab').click();
+   $('name').value=legacy.name||'';
+   $('age').value=legacy.age||8;$('year').value=legacy.year||ageToYear(legacy.age||8);
+   $('claimBtn').classList.remove('hidden');
+   $('claimBtn').onclick=async()=>{
+    const username=$('username').value.trim(),code=$('code').value.trim();
+    if(!username||!/^\d{6}$/.test(code))return alert('Choose a username and exactly 6 digits.');
+    try{
+     const d=await api('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'claim_legacy',student_id:legacy.studentId,name:legacy.name,username,code})});
+     acceptLogin(d,{age:legacy.age,targetGem:legacy.targetGem||55,sessionCount:legacy.sessionCount||10});
+     localStorage.removeItem(LEGACY_KEY);showMain();await showParent();
+    }catch(e){alert(e.message)}
+   };
+ }
+})();
 </script>
 </body>
 </html>
