@@ -30,7 +30,10 @@ export async function onRequestGet({ request, env }) {
         ON cc.word_id = w.id AND cc.year_group = wl.year_group
       LEFT JOIN lexical_cache lc
         ON lc.word_id = w.id
-      WHERE wl.year_group = ? AND wl.active = 1
+      WHERE wl.year_group = ?
+        AND wl.active = 1
+        AND COALESCE(cc.canonical_definition, lc.definition) IS NOT NULL
+        AND LENGTH(TRIM(COALESCE(cc.canonical_definition, lc.definition))) >= 8
       ORDER BY RANDOM()
       LIMIT 100
     `).bind(year).all();
