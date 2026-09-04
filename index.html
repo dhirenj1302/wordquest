@@ -169,10 +169,11 @@ function pickWord(){
  const w=pool[Math.floor(Math.random()*pool.length)];session.seen.add(w.id);return w;
 }
 function makeQuestion(w){
- const types=['meaning','word_from_definition'];
- if((w.synonyms||[]).length)types.push('synonym');
- if((w.antonyms||[]).length)types.push('antonym');
- if((w.examples||[]).length)types.push('context');
+ const types=['meaning'];
+ if(!definitionLeaksTarget(w))types.push('word_from_definition');
+ if(firstUsableRelation(w.synonyms,w.lemma))types.push('synonym');
+ if(firstUsableRelation(w.antonyms,w.lemma))types.push('antonym');
+ if(firstUsableExample(w.examples))types.push('context');
 
  const type=types[Math.floor(Math.random()*types.length)];
  const samePos=session.words.filter(x=>x.id!==w.id && x.definition && samePartOfSpeech(w,x));
@@ -190,24 +191,24 @@ function makeQuestion(w){
    opts=[correct,...wordDistractors(w,others,3)];
    displayWord=false;
  }else if(type==='synonym'){
-   correct=w.synonyms[0];
+   correct=firstUsableRelation(w.synonyms,w.lemma);
    q=`Which word is closest in meaning to “${w.lemma}”?`;
    opts=[correct,...synonymDistractors(w,others,correct,3)];
  }else if(type==='antonym'){
-   correct=w.antonyms[0];
+   correct=firstUsableRelation(w.antonyms,w.lemma);
    q=`Which word is most nearly the opposite of “${w.lemma}”?`;
    opts=[correct,...antonymDistractors(w,others,correct,3)];
  }else{
-   example=w.examples[0];
+   example=firstUsableExample(w.examples);
    q=`In this sentence, what does “${w.lemma}” most nearly mean?`;
    correct=w.definition;
    opts=[correct,...contextDistractors(w,others,3)];
  }
 
  opts=unique(opts.filter(isGoodOption)).slice(0,4);
- const emergency=others.flatMap(x=>[x.definition,x.lemma]).filter(isGoodOption);
- for(const x of emergency){if(opts.length>=4)break;if(!opts.includes(x))opts.push(x)}
-
+ const emergency=emergencyOptions(w,others,type,correct);
+ for(const x of emergency){if(opts.length>=4)break;if(!opts.some(o=>sameText(o,x)))opts.push(x)}
+ if(opts.length!==4)return makeMeaningFallback(w,others);
  return {w,type,q,correct,opts:shuffle(opts),displayWord,example};
 }
 
@@ -296,29 +297,97 @@ function tokenise(s){return String(s||'').toLowerCase().match(/[a-z]+/g)||[]}
 function escapeRX(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
 
 function wordDistractors(w,pool,n){
- return rankWords(w,pool).map(x=>x.lemma).slice(0,n);
+ return rankWords(w,pool).filter(x=>isSafeWordDistractor(w,x)).map(x=>x.lemma).slice(0,n);
 }
 
 function synonymDistractors(w,pool,correct,n){
  const candidates=[
-   ...(w.antonyms||[]),                      // plausible because related to the target
-   ...rankWords(w,pool).map(x=>x.lemma),    // same-POS, similar difficulty
-   ...pool.flatMap(x=>x.synonyms||[])
+   ...(w.antonyms||[]).map(x=>({text:x,source:null})),
+   ...rankWords(w,pool).map(x=>({text:x.lemma,source:x})),
+   ...pool.flatMap(x=>(x.synonyms||[]).map(s=>({text:s,source:x})))
  ];
- return unique(candidates)
-   .filter(x=>x!==correct && x!==w.lemma && isGoodWordOption(x))
-   .slice(0,n);
+ return uniqueObjects(candidates)
+   .filter(o=>!sameText(o.text,correct)&&!sameText(o.text,w.lemma))
+   .filter(o=>isGoodWordOption(o.text))
+   .filter(o=>isSafeRelationDistractor(w,o.text,o.source,'synonym'))
+   .map(o=>o.text).slice(0,n);
 }
 
 function antonymDistractors(w,pool,correct,n){
  const candidates=[
-   ...(w.synonyms||[]),                     // tempting but directionally wrong
-   ...rankWords(w,pool).map(x=>x.lemma),
-   ...pool.flatMap(x=>x.antonyms||[])
+   ...(w.synonyms||[]).map(x=>({text:x,source:null})),
+   ...rankWords(w,pool).map(x=>({text:x.lemma,source:x})),
+   ...pool.flatMap(x=>(x.antonyms||[]).map(a=>({text:a,source:x})))
  ];
- return unique(candidates)
-   .filter(x=>x!==correct && x!==w.lemma && isGoodWordOption(x))
-   .slice(0,n);
+ return uniqueObjects(candidates)
+   .filter(o=>!sameText(o.text,correct)&&!sameText(o.text,w.lemma))
+   .filter(o=>isGoodWordOption(o.text))
+   .filter(o=>isSafeRelationDistractor(w,o.text,o.source,'antonym'))
+   .map(o=>o.text).slice(0,n);
+}
+
+function firstUsableRelation(values,lemma){
+ return unique(values||[]).find(x=>isGoodWordOption(x)&&!sameText(x,lemma))||null;
+}
+function firstUsableExample(values){
+ return unique(values||[]).find(x=>{const s=String(x||'').trim();return s.length>=8&&s.length<=180})||null;
+}
+function definitionLeaksTarget(w){
+ const target=stemToken(w.lemma);if(target.length<4)return false;
+ return tokenise(w.definition).some(t=>stemToken(t)===target);
+}
+function isSafeWordDistractor(w,candidate){
+ if(!candidate||!isGoodWordOption(candidate.lemma)||sameText(candidate.lemma,w.lemma))return false;
+ if(semanticOverlap(w.definition,candidate.definition)>=0.28)return false;
+ const targetRelations=new Set([...(w.synonyms||[]),...(w.antonyms||[])].map(normalText));
+ if(targetRelations.has(normalText(candidate.lemma)))return false;
+ const candidateRelations=new Set([candidate.lemma,...(candidate.synonyms||[]),...(candidate.antonyms||[])].map(normalText));
+ if(candidateRelations.has(normalText(w.lemma)))return false;
+ if((w.synonyms||[]).some(x=>candidateRelations.has(normalText(x))))return false;
+ return true;
+}
+function isSafeRelationDistractor(w,text,source,questionType){
+ const t=normalText(text);if(!t||sameText(t,w.lemma))return false;
+ const synonyms=new Set((w.synonyms||[]).map(normalText));
+ const antonyms=new Set((w.antonyms||[]).map(normalText));
+ if(questionType==='synonym'&&synonyms.has(t))return false;
+ if(questionType==='antonym'&&antonyms.has(t))return false;
+ if(source){
+   if(semanticOverlap(w.definition,source.definition)>=0.28)return false;
+   const sr=new Set([source.lemma,...(source.synonyms||[]),...(source.antonyms||[])].map(normalText));
+   if(sr.has(normalText(w.lemma)))return false;
+   if((w.synonyms||[]).some(x=>sr.has(normalText(x))))return false;
+ }
+ return true;
+}
+function emergencyOptions(w,pool,type,correct){
+ if(type==='meaning'||type==='context'){
+   return rankDefinitions(w,pool,type==='context').map(x=>x.definition).filter(x=>isSafeDistractor(w,x,type==='context'));
+ }
+ return rankWords(w,pool).filter(x=>isSafeWordDistractor(w,x)).map(x=>x.lemma).filter(x=>!sameText(x,correct));
+}
+function makeMeaningFallback(w,others){
+ const correct=w.definition;
+ let opts=unique([correct,...definitionDistractors(w,others,3)].filter(isGoodOption)).slice(0,4);
+ for(const x of rankDefinitions(w,others).map(x=>x.definition).filter(x=>isSafeDistractor(w,x,false))){
+   if(opts.length>=4)break;
+   if(!opts.some(o=>sameText(o,x)))opts.push(x);
+ }
+ return {w,type:'meaning',q:`What does “${w.lemma}” mean?`,correct,opts:shuffle(opts.slice(0,4)),displayWord:true,example:null};
+}
+function uniqueObjects(items){
+ const seen=new Set(),out=[];
+ for(const item of items){const k=normalText(item.text);if(!k||seen.has(k))continue;seen.add(k);out.push(item)}
+ return out;
+}
+function normalText(x){return String(x||'').trim().toLowerCase()}
+function sameText(a,b){return normalText(a)===normalText(b)}
+function stemToken(s){
+ let x=String(s||'').toLowerCase().replace(/[^a-z]/g,'');
+ for(const suf of ['ingly','edly','ing','ied','ies','ed','es','s']){
+   if(x.length>suf.length+3&&x.endsWith(suf)){x=x.slice(0,-suf.length);if(suf==='ied'||suf==='ies')x+='y';break}
+ }
+ return x;
 }
 
 function rankDefinitions(w,pool,context=false){
