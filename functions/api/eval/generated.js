@@ -69,7 +69,7 @@ export async function onRequestGet({ request, env }) {
       year,
       requested_count: count,
       generated_count: questions.length,
-      generator_version: 'phase3a-1',
+      generator_version: 'phase8.2',
       questions
     }, { headers: { 'Cache-Control': 'no-store' } });
 
@@ -82,10 +82,12 @@ export async function onRequestGet({ request, env }) {
 }
 
 function makeQuestion(w, pool) {
-  const types = ['meaning', 'word_from_definition'];
-  if (w.synonyms.length) types.push('synonym');
-  if (w.antonyms.length) types.push('antonym');
-  if (w.examples.length) types.push('context');
+  const types = ['meaning'];
+
+  if (!definitionLeaksTarget(w)) types.push('word_from_definition');
+  if (firstUsableRelation(w.synonyms, w.lemma)) types.push('synonym');
+  if (firstUsableRelation(w.antonyms, w.lemma)) types.push('antonym');
+  if (firstUsableExample(w.examples)) types.push('context');
 
   const type = types[Math.floor(Math.random() * types.length)];
   const samePos = pool.filter(x => x.id !== w.id && x.definition && samePartOfSpeech(w, x));
@@ -102,26 +104,26 @@ function makeQuestion(w, pool) {
     correct = w.lemma;
     options = [correct, ...wordDistractors(w, others, 3)];
   } else if (type === 'synonym') {
+    correct = firstUsableRelation(w.synonyms, w.lemma);
     stem = `Which word is closest in meaning to “${w.lemma}”?`;
-    correct = w.synonyms[0];
     options = [correct, ...synonymDistractors(w, others, correct, 3)];
   } else if (type === 'antonym') {
+    correct = firstUsableRelation(w.antonyms, w.lemma);
     stem = `Which word is most nearly the opposite of “${w.lemma}”?`;
-    correct = w.antonyms[0];
     options = [correct, ...antonymDistractors(w, others, correct, 3)];
   } else {
-    example = w.examples[0];
-    stem = `In this sentence, what does “${w.lemma}” most nearly mean?`;
+    example = firstUsableExample(w.examples);
+    stem = `“${example}” In this sentence, what does “${w.lemma}” most nearly mean?`;
     correct = w.definition;
     options = [correct, ...contextDistractors(w, others, 3)];
   }
 
   options = unique(options.filter(isGoodOption)).slice(0, 4);
 
-  const emergency = others.flatMap(x => [x.definition, x.lemma]).filter(isGoodOption);
+  const emergency = emergencyOptions(w, others, type, correct);
   for (const x of emergency) {
     if (options.length >= 4) break;
-    if (!options.includes(x)) options.push(x);
+    if (!options.some(o => sameText(o, x))) options.push(x);
   }
 
   if (options.length !== 4) return null;
@@ -134,6 +136,7 @@ function makeQuestion(w, pool) {
     question_type: type,
     stem,
     example,
+    context_sentence: example,
     correct_answer: correct,
     options: shuffle(options),
     target_definition: w.definition,
@@ -167,28 +170,39 @@ function contextDistractors(w, pool, n) {
 }
 
 function wordDistractors(w, pool, n) {
-  return rankWords(w, pool).map(x => x.lemma).slice(0, n);
+  return rankWords(w, pool)
+    .filter(x => isSafeWordDistractor(w, x))
+    .map(x => x.lemma)
+    .slice(0, n);
 }
 
 function synonymDistractors(w, pool, correct, n) {
   const candidates = [
-    ...w.antonyms,
-    ...rankWords(w, pool).map(x => x.lemma),
-    ...pool.flatMap(x => x.synonyms)
+    ...w.antonyms.map(x => ({ text: x, source: null })),
+    ...rankWords(w, pool).map(x => ({ text: x.lemma, source: x })),
+    ...pool.flatMap(x => x.synonyms.map(s => ({ text: s, source: x })))
   ];
-  return unique(candidates)
-    .filter(x => x !== correct && x !== w.lemma && isGoodWordOption(x))
+
+  return uniqueObjects(candidates)
+    .filter(o => !sameText(o.text, correct) && !sameText(o.text, w.lemma))
+    .filter(o => isGoodWordOption(o.text))
+    .filter(o => isSafeRelationDistractor(w, o.text, o.source, 'synonym'))
+    .map(o => o.text)
     .slice(0, n);
 }
 
 function antonymDistractors(w, pool, correct, n) {
   const candidates = [
-    ...w.synonyms,
-    ...rankWords(w, pool).map(x => x.lemma),
-    ...pool.flatMap(x => x.antonyms)
+    ...w.synonyms.map(x => ({ text: x, source: null })),
+    ...rankWords(w, pool).map(x => ({ text: x.lemma, source: x })),
+    ...pool.flatMap(x => x.antonyms.map(a => ({ text: a, source: x })))
   ];
-  return unique(candidates)
-    .filter(x => x !== correct && x !== w.lemma && isGoodWordOption(x))
+
+  return uniqueObjects(candidates)
+    .filter(o => !sameText(o.text, correct) && !sameText(o.text, w.lemma))
+    .filter(o => isGoodWordOption(o.text))
+    .filter(o => isSafeRelationDistractor(w, o.text, o.source, 'antonym'))
+    .map(o => o.text)
     .slice(0, n);
 }
 
@@ -269,6 +283,101 @@ function behaviouralOverlap(a, b) {
     if (x && y) return true;
   }
   return false;
+}
+
+function firstUsableRelation(values, lemma) {
+  return unique(values || []).find(x => isGoodWordOption(x) && !sameText(x, lemma)) || null;
+}
+
+function firstUsableExample(values) {
+  return unique(values || []).find(x => {
+    const s = String(x || '').trim();
+    return s.length >= 8 && s.length <= 180;
+  }) || null;
+}
+
+function definitionLeaksTarget(w) {
+  const target = stemToken(w.lemma);
+  if (target.length < 4) return false;
+  return tokenise(w.definition).some(t => stemToken(t) === target);
+}
+
+function isSafeWordDistractor(w, candidate) {
+  if (!candidate || !isGoodWordOption(candidate.lemma)) return false;
+  if (sameText(candidate.lemma, w.lemma)) return false;
+  if (semanticOverlap(w.definition, candidate.definition) >= 0.28) return false;
+
+  const targetRelations = new Set([...w.synonyms, ...w.antonyms].map(normalText));
+  if (targetRelations.has(normalText(candidate.lemma))) return false;
+
+  const candidateRelations = new Set([candidate.lemma, ...candidate.synonyms, ...candidate.antonyms].map(normalText));
+  if (candidateRelations.has(normalText(w.lemma))) return false;
+  if (w.synonyms.some(x => candidateRelations.has(normalText(x)))) return false;
+  return true;
+}
+
+function isSafeRelationDistractor(w, text, source, questionType) {
+  const t = normalText(text);
+  if (!t || sameText(t, w.lemma)) return false;
+
+  const synonyms = new Set(w.synonyms.map(normalText));
+  const antonyms = new Set(w.antonyms.map(normalText));
+
+  if (questionType === 'synonym' && synonyms.has(t)) return false;
+  if (questionType === 'antonym' && antonyms.has(t)) return false;
+
+  if (source) {
+    if (semanticOverlap(w.definition, source.definition) >= 0.28) return false;
+    const sourceRelations = new Set([source.lemma, ...source.synonyms, ...source.antonyms].map(normalText));
+    if (sourceRelations.has(normalText(w.lemma))) return false;
+    if (w.synonyms.some(x => sourceRelations.has(normalText(x)))) return false;
+  }
+  return true;
+}
+
+function emergencyOptions(w, pool, type, correct) {
+  if (type === 'meaning' || type === 'context') {
+    return rankDefinitions(w, pool)
+      .map(x => x.definition)
+      .filter(x => isSafeDistractor(w, x, type === 'context'));
+  }
+
+  return rankWords(w, pool)
+    .filter(x => isSafeWordDistractor(w, x))
+    .map(x => x.lemma)
+    .filter(x => !sameText(x, correct));
+}
+
+function uniqueObjects(items) {
+  const seen = new Set();
+  const out = [];
+  for (const item of items) {
+    const key = normalText(item.text);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out;
+}
+
+function normalText(x) {
+  return String(x || '').trim().toLowerCase();
+}
+
+function sameText(a, b) {
+  return normalText(a) === normalText(b);
+}
+
+function stemToken(s) {
+  let x = String(s || '').toLowerCase().replace(/[^a-z]/g, '');
+  for (const suffix of ['ingly','edly','ing','ied','ies','ed','es','s']) {
+    if (x.length > suffix.length + 3 && x.endsWith(suffix)) {
+      x = x.slice(0, -suffix.length);
+      if (suffix === 'ied' || suffix === 'ies') x += 'y';
+      break;
+    }
+  }
+  return x;
 }
 
 function samePartOfSpeech(a, b) {
